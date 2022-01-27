@@ -52,17 +52,19 @@ public class TestContentManager {
   @BeforeClass
   public static void createContentManager() throws Exception {
     File root = dir();
-    // ensure generated files don't alreadt exist
-    File index = new File(root, "index.html");
-    index.delete();
-    File testHtml = new File(new File(root, "test"), "test.html");
-    testHtml.delete();
-    File peerHtml = new File(new File(root, "test"), "peer.html");
-    peerHtml.delete();
-    File testHtml2 = new File(new File(new File(root, "test"), "test"), "test.html");
-    testHtml2.delete();
-    File testDir = new File(new File(root, "test"), "test");
-    testDir.delete();
+    // ensure generated files don't already exist
+    File[] toDelete = {
+      new File(root, "template.html"),
+      new File(root, "header.html"),
+      new File(root, "footer.html"),
+      new File(root, "style.css"),
+      new File(root, "index.html"),
+      new File(new File(root, "test"), "test.html"),
+      new File(new File(root, "test"), "peer.html"),
+      new File(new File(new File(root, "test"), "test"), "test.html"),
+      new File(new File(root, "test"), "test"),      
+    };
+    for (File f : toDelete) f.delete();
     // create manager
     manager = new ContentManager().setRoot(root);
   }
@@ -128,6 +130,20 @@ public class TestContentManager {
     }
     assertEquals("Correct number of lines", expectedContent.size(), content.size());
     
+  }
+  
+  /** Ensure customizable files are created. */
+  @Test public void customizableFilesCreated() throws Exception {
+    File root = dir();
+    File[] customizableFiles = {
+      new File(root, "template.html"),
+      new File(root, "header.html"),
+      new File(root, "footer.html"),
+      new File(root, "style.css")
+    };
+    for (File f : customizableFiles) {
+      assertTrue(f.getName() + " exists", f.exists());
+    }
   }
 
   /** Ordinary files, and wysiwiki files, can be read. */

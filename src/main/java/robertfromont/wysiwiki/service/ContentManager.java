@@ -93,6 +93,23 @@ public class ContentManager {
     writeForbidden.add(root.resolve("index.html"));
     writeForbidden.add(root.resolve("rss.xml"));
 
+    // ensure customizable files are in place TODO
+    String[] customizableFiles = {
+      "template.html",
+      "header.html",
+      "footer.html",
+      "style.css"
+    };
+    Path wysiwiki = root.resolve("wysiwiki");
+    for (String name : customizableFiles) {
+      Path file = root.resolve(name);
+      if (!Files.exists(file)) {
+        // copy the standard version
+        Path standardVersion = wysiwiki.resolve(name);
+        Files.copy(standardVersion, file);
+      }
+    } // next customizable file    
+
     loadIndex();
     return this;
   }
@@ -256,8 +273,10 @@ public class ContentManager {
     Arrays.sort(children);
     for (File child : children) {
       if (dir.equals(root)
-          // don't list the template
+          // don't list the customizable files
           && (child.getName().equals("template.html")
+              || child.getName().equals("header.html")
+              || child.getName().equals("footer.html")
               // nor the home page
               || child.getName().equals("home.html")
               // nor the web app directories
