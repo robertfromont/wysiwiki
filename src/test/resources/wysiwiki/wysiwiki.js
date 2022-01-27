@@ -1,0 +1,1 @@
+/wysiwiki/wysiwiki.js
