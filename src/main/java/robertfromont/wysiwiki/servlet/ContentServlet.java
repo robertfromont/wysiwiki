@@ -104,8 +104,13 @@ public class ContentServlet extends HttpServlet {
     if (request.getPathInfo().endsWith(".html")) {
       response.setCharacterEncoding("UTF-8");
     }
-    response.setContentType(
-      URLConnection.guessContentTypeFromName(request.getPathInfo()));
+    String contentType = URLConnection.guessContentTypeFromName(request.getPathInfo());
+    if ((contentType == null || contentType.length() == 0)
+        && request.getPathInfo().endsWith(".js")) {
+      // for some reason guessContentTypeFromName doesn't get .js right
+      contentType = "application/javascript";
+    }
+    response.setContentType(contentType);
     response.setDateHeader( // expires in a week
       "Expires", new java.util.Date().getTime() + (1000*60*60*24*7));
     
