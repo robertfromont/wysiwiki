@@ -19,20 +19,24 @@
 //
 package robertfromont.wysiwiki.servlet;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.URLConnection;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import robertfromont.wysiwiki.service.ContentManager;
-import java.nio.file.FileSystems;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.net.URLConnection;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Serves content, and handle content update requests.
@@ -97,7 +101,30 @@ public class ContentServlet extends HttpServlet {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
       if (request.getPathInfo().endsWith(".html")) {
         // return 404, but also a template for creating a new document
-        contentStream = content.read("/template.html"); // TODO edite <base> on the way through
+
+        // if it's not a top-level document we need to edit the <base> tag on the way through
+        if (request.getPathInfo().indexOf('/', 1) >= 0) {
+          // for each slash in the path, we need to add "../" to the base href
+          int slashCount = request.getPathInfo().substring(1).split("/").length - 1;
+          String href = "";
+          for (int level = 0; level < slashCount; level++) href += "../";
+          String baseTag = "<base href=\""+href+"\">";
+          
+          // read the document into a string, converting the base tag, and write out the result 
+          StringBuilder template = new StringBuilder();
+          BufferedReader reader = new BufferedReader(
+            new InputStreamReader(content.read("/template.html")));
+          String line = reader.readLine();
+          while(line != null) {
+            template.append(line.replaceAll("<base href=\"\\./\">", baseTag));
+            template.append("\n");
+            line = reader.readLine();
+          } // next line
+          reader.close();
+          contentStream = new ByteArrayInputStream(template.toString().getBytes());
+        } else { // top level document, so just copy through the template as-is
+          contentStream = content.read("/template.html");
+        }
       }
     }
     
@@ -123,5 +150,44 @@ public class ContentServlet extends HttpServlet {
     contentStream.close();
     responseBody.close();
   }  
+
+  /**
+   * PUT handler: Adds or updates an HTML document, or if the "move" parameter is specified,
+   * the document's entry is moved in the index (in which case the HTML document itself is
+   * not updated).
+   */
+  @Override
+  protected void doPut(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+    response.setContentType("text/plain");
+    response.setCharacterEncoding("UTF-8");
+    try {
+
+      if (request.getPathInfo() == null || !request.getPathInfo().endsWith(".html")) {
+        // can only PUT html documents
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        return;
+      }
+      String move = request.getParameter("move");
+      if (move == null) { // PUT full content                
+        // back up the old version
+        //TODO backup(html);
+        try {
+          content.update(request.getPathInfo(), request.getInputStream());
+        } catch(NoSuchFileException exception) {
+          content.create(request.getPathInfo(), request.getInputStream());
+        }
+        response.getWriter().write("OK");
+      } else { // move request - only edit the position in the index TODO
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.getWriter().write("Move not supported.");
+      } // move request
+      
+    } catch (Exception x) {
+      x.printStackTrace(System.err);
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.getWriter().write(x.toString());
+    }
+  }
 
 } // end of class ContentServlet

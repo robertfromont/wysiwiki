@@ -13,13 +13,13 @@ header, footer {
     margin: auto;
     width: 100%;
 }
-#main > nav details {
+.index details {
     padding-left: 10px;
 }
-#main > nav div {
+.index div {
     padding-left: 20px;
 }
-#main > nav span {
+.index span {
     float: right;
     cursor: default;
 }

@@ -345,6 +345,7 @@ public class ContentManager {
     File child = path.toFile();
     boolean updated = false;
     String id = urlPath.replaceAll("\\.html$", "");
+    if (id.equals("/home")) id = "/";
     Element item = (Element)xpath.evaluate(
       "//*[@id='"+id+"']", index, XPathConstants.NODE);
     if (item == null) { // item isn't there yet
@@ -392,7 +393,7 @@ public class ContentManager {
           // it should be a <details> tag
           tagName = "summary";
         }
-        if (!tagName.equals(item.getTagName())) {
+        if (!tagName.equals(item.getTagName()) && !id.equals("/")) {
           // change tag name
           parentDetails.removeChild(item);
           if (!child.exists() && tagName.equals("div")) { // both dir and .html file deleted
