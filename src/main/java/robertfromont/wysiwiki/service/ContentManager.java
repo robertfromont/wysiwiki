@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.*;
@@ -270,7 +271,7 @@ public class ContentManager {
       || (f.isDirectory() // directory 
           && f.listFiles(  // with html files
             ff -> ff.getName().endsWith(".html")).length > 0));
-    Arrays.sort(children);
+    Arrays.sort(children, Comparator.comparingLong(File::lastModified));
     for (File child : children) {
       if (dir.equals(root)
           // don't list the customizable files

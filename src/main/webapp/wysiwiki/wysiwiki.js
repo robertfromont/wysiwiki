@@ -8,7 +8,6 @@ const saveLabel = "Save";
 const deleteLabel = "Delete";
 
 function editPage() {
-    creating = document.querySelector("title").innerText.startsWith("*");
     if (creating) {
         // add some default content
         let title = document.URL // file name by default
@@ -135,13 +134,6 @@ function deletePage() {
     } // are you sure?
 }
 
-// ensure they don't accidentally navigate away without saving
-window.addEventListener("beforeunload", function() {
-    if (articleEditor) {
-        return "You have not saved your changes.";
-    }
-});
-
 window.addEventListener("message", function(e) {
     // message that was passed from iframe page
     const message = e.data;
@@ -152,19 +144,30 @@ window.addEventListener("message", function(e) {
 }, false);
 
 window.addEventListener("load", function(e) {
+    const aside = document.querySelector("aside");
+    
     // Add edit button
     editButton = document.createElement("button");
     editButton.id = "edit"
     editButton.innerHTML = editLabel;
     editButton.onclick = editPage;
+    aside.appendChild(editButton);
+    
     // Add delete button
     deleteButton = document.createElement("button");
     deleteButton.id = "delete"
     deleteButton.style = "display: none;";
     deleteButton.innerHTML = deleteLabel;
     deleteButton.onclick = deletePage;
-    const aside = document.querySelector("aside");
-    aside.appendChild(editButton);
     aside.appendChild(deleteButton);
+    
+    creating = document.querySelector("title").innerText.startsWith("*");
+    if (creating) editPage();
 }, false);
 
+// ensure they don't accidentally navigate away without saving
+window.addEventListener("beforeunload", function() {
+    if (articleEditor) {
+        return "You have not saved your changes.";
+    }
+});

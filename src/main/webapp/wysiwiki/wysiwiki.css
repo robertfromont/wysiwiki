@@ -88,3 +88,7 @@ body.resource {
 nav iframe {
     height: 100%;
 }
+
+.index button {
+    width: fit-content;
+}
