@@ -279,6 +279,8 @@ public class ContentManager {
               || child.getName().equals("footer.html")
               // nor the home page
               || child.getName().equals("home.html")
+              // nor the index
+              || child.getName().equals("index.html")
               // nor the web app directories
               || child.getName().equals("WEB-INF")
               || child.getName().equals("META-INF")
@@ -339,109 +341,116 @@ public class ContentManager {
    * @throws Exception
    */
   protected boolean indexPath(String urlPath) throws Exception {
-    if (urlPath == null || urlPath.length() == 0) return false;
-    if (urlPath.length() == 0 || urlPath.charAt(0) != '/') urlPath = "/"+urlPath;
-    Path path = root.resolve(urlPath.replaceAll("^/","")).normalize();
-    File child = path.toFile();
-    boolean updated = false;
-    String id = urlPath.replaceAll("\\.html$", "");
-    if (id.equals("/home")) id = "/";
-    Element item = (Element)xpath.evaluate(
-      "//*[@id='"+id+"']", index, XPathConstants.NODE);
-    if (item == null) { // item isn't there yet
-      if (!child.exists()) return false; // no need to index it
+    // Efficiently adding 'hot' updates to the index would be faster and more efficient,
+    // but this currently has bugs I don't have time to hunt.
+    // So instead, we re-index the whole document base directory on every update.
+    // This won't scale well, so hopefully one day I'll have free time to fix the
+    // commented-out code
+    createIndex();
+    return true;
+    // if (urlPath == null || urlPath.length() == 0) return false;
+    // if (urlPath.length() == 0 || urlPath.charAt(0) != '/') urlPath = "/"+urlPath;
+    // Path path = root.resolve(urlPath.replaceAll("^/","")).normalize();
+    // File child = path.toFile();
+    // boolean updated = false;
+    // String id = urlPath.replaceAll("\\.html$", "");
+    // if (id.equals("/home")) id = "/";
+    // Element item = (Element)xpath.evaluate(
+    //   "//*[@id='"+id+"']", index, XPathConstants.NODE);
+    // if (item == null) { // item isn't there yet
+    //   if (!child.exists()) return false; // no need to index it
       
-      // add it
-      String parentId = id.replaceAll("/[^/]*$","");
-      if (parentId.length() == 0) { // we've reached root
-        parentId = "/";
-      }
-      Element parentSummary = (Element)xpath.evaluate(
-        "//*[@id='"+parentId+"']", index, XPathConstants.NODE);
-      if (parentSummary == null) {
-        indexPath(parentId);
-        parentSummary = (Element)xpath.evaluate(
-          "//*[@id='"+parentId+"']", index, XPathConstants.NODE);
-      }
-      Element parentDetails = (Element)parentSummary.getParentNode();
-      if (parentSummary.getTagName().equals("div")) { // file entry is becoming a dir entry
-        Element grandparentDetails = parentDetails;
-        Element parentDiv = parentSummary;
-        parentSummary = index.createElement("summary");
-        Element a = (Element)xpath.evaluate("a", parentDiv, XPathConstants.NODE);
-        parentDiv.removeChild(a);
-        parentSummary.appendChild(a);
-        parentDetails = index.createElement("details");
-        parentDetails.appendChild(parentSummary);
-        grandparentDetails.replaceChild(parentDetails, parentDiv);
-        parentSummary.setAttribute("id", parentId);
-      }
-      if (parentId.equals("/")) parentId = "";
-      addIndexItem(parentDetails, child.getParentFile(), child, parentId + "/", null);
-      updated = true;
-    } else { // item is already there
-      // check it's the correct type and title...
+    //   // add it
+    //   String parentId = id.replaceAll("/[^/]*$","");
+    //   if (parentId.length() == 0) { // we've reached root
+    //     parentId = "/";
+    //   }
+    //   Element parentSummary = (Element)xpath.evaluate(
+    //     "//*[@id='"+parentId+"']", index, XPathConstants.NODE);
+    //   if (parentSummary == null) {
+    //     indexPath(parentId);
+    //     parentSummary = (Element)xpath.evaluate(
+    //       "//*[@id='"+parentId+"']", index, XPathConstants.NODE);
+    //   }
+    //   Element parentDetails = (Element)parentSummary.getParentNode();
+    //   if (parentSummary.getTagName().equals("div")) { // file entry is becoming a dir entry
+    //     Element grandparentDetails = parentDetails;
+    //     Element parentDiv = parentSummary;
+    //     parentSummary = index.createElement("summary");
+    //     Element a = (Element)xpath.evaluate("a", parentDiv, XPathConstants.NODE);
+    //     parentDiv.removeChild(a);
+    //     parentSummary.appendChild(a);
+    //     parentDetails = index.createElement("details");
+    //     parentDetails.appendChild(parentSummary);
+    //     grandparentDetails.replaceChild(parentDetails, parentDiv);
+    //     parentSummary.setAttribute("id", parentId);
+    //   }
+    //   if (parentId.equals("/")) parentId = "";
+    //   addIndexItem(parentDetails, child.getParentFile(), child, parentId + "/", null);
+    //   updated = true;
+    // } else { // item is already there
+    //   // check it's the correct type and title...
       
-      if (child.getName().endsWith(".html")) {
-        Node parentDetails = item.getParentNode();
-        String tagName = "div"; // should be a <div> tag
-        // unless there's a non-empty directory with the same name
-        File dirWithSameName = new File(
-          child.getParentFile(), child.getName().replaceAll("\\.html$", ""));
-        if (dirWithSameName.exists() && dirWithSameName.isDirectory()
-            && dirWithSameName.listFiles(f -> f.getName().endsWith(".html")).length > 0) {
-          // it should be a <details> tag
-          tagName = "summary";
-        }
-        if (!tagName.equals(item.getTagName()) && !id.equals("/")) {
-          // change tag name
-          parentDetails.removeChild(item);
-          if (!child.exists() && tagName.equals("div")) { // both dir and .html file deleted
-            if (!parentDetails.hasChildNodes()) { // no more children
-              // delete the <details> tag
+    //   if (child.getName().endsWith(".html")) {
+    //     Node parentDetails = item.getParentNode();
+    //     String tagName = "div"; // should be a <div> tag
+    //     // unless there's a non-empty directory with the same name
+    //     File dirWithSameName = new File(
+    //       child.getParentFile(), child.getName().replaceAll("\\.html$", ""));
+    //     if (dirWithSameName.exists() && dirWithSameName.isDirectory()
+    //         && dirWithSameName.listFiles(f -> f.getName().endsWith(".html")).length > 0) {
+    //       // it should be a <details> tag
+    //       tagName = "summary";
+    //     }
+    //     if (!tagName.equals(item.getTagName()) && !id.equals("/")) {
+    //       // change tag name
+    //       parentDetails.removeChild(item);
+    //       if (!child.exists() && tagName.equals("div")) { // both dir and .html file deleted
+    //         if (!parentDetails.hasChildNodes()) { // no more children
+    //           // delete the <details> tag
               
-              parentDetails.getParentNode().removeChild(parentDetails);
-            }
-          } else {
-            addIndexItem(
-              parentDetails, child.getParentFile(), child, urlPath.replaceAll("[^/]+$",""),
-              root.toFile());
-          }
-          updated = true;
-        } else {
-          if (child.exists()) {
-            // check title
-            String currentTitle = title(child);
-            Element a = (Element)xpath.evaluate("a", item, XPathConstants.NODE);
-            if (a != null && !currentTitle.equals(a.getTextContent())) {
-              a.setTextContent(currentTitle);
-              updated = true;
-            }
-          } else { // doesn't exist
-            if (tagName.equals("summary")) { // there's a dir with the same name
-              Element a = (Element)xpath.evaluate("a", item, XPathConstants.NODE);
-              if (a != null) { // the summary is a link
-                // replace link with the name of the directory
-                item.setTextContent(dirWithSameName.getName());
-                updated = true;
-              }
-            } else { // there's no dir with the same name
-              // remove it from the index
-              parentDetails.removeChild(item);
-              updated = true;
-            }
-          }
-        }
-        if (updated) {
-          // parent may also need indexing
-          String parentUrl = urlPath.replaceAll("/[^/]+$",".html");
-          if (!parentUrl.equals(".html")) {
-            indexPath(parentUrl);
-          }
-        }
-      } // .html file
-    }
-    return updated;
+    //           parentDetails.getParentNode().removeChild(parentDetails);
+    //         }
+    //       } else {
+    //         addIndexItem(
+    //           parentDetails, child.getParentFile(), child, urlPath.replaceAll("[^/]+$",""),
+    //           root.toFile());
+    //       }
+    //       updated = true;
+    //     } else {
+    //       if (child.exists()) {
+    //         // check title
+    //         String currentTitle = title(child);
+    //         Element a = (Element)xpath.evaluate("a", item, XPathConstants.NODE);
+    //         if (a != null && !currentTitle.equals(a.getTextContent())) {
+    //           a.setTextContent(currentTitle);
+    //           updated = true;
+    //         }
+    //       } else { // doesn't exist
+    //         if (tagName.equals("summary")) { // there's a dir with the same name
+    //           Element a = (Element)xpath.evaluate("a", item, XPathConstants.NODE);
+    //           if (a != null) { // the summary is a link
+    //             // replace link with the name of the directory
+    //             item.setTextContent(dirWithSameName.getName());
+    //             updated = true;
+    //           }
+    //         } else { // there's no dir with the same name
+    //           // remove it from the index
+    //           parentDetails.removeChild(item);
+    //           updated = true;
+    //         }
+    //       }
+    //     }
+    //     if (updated) {
+    //       // parent may also need indexing
+    //       String parentUrl = urlPath.replaceAll("/[^/]+$",".html");
+    //       if (!parentUrl.equals(".html")) {
+    //         indexPath(parentUrl);
+    //       }
+    //     }
+    //   } // .html file
+    // }
+    // return updated;
   } // end of indexPath()
   
   static final Pattern titlePattern = Pattern.compile(".*<title>(.*)</title>.*");

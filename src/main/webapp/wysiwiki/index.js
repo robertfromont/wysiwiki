@@ -12,7 +12,6 @@ function reportDimensions() {
 window.addEventListener("load", function(e) {
     // Expand to current page
     const currentUrl = document.referrer;
-    console.log("index loaded by " + currentUrl);
     if (currentUrl) {
         const baseURL = document.baseURI.replace(/\/index\.html$/,"");
         const currentId = currentUrl.substring(baseURL.length)

@@ -21,6 +21,7 @@ package robertfromont.wysiwiki.servlet;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,9 +91,19 @@ public class ContentServlet extends HttpServlet {
     if (request.getPathInfo().endsWith("/")) { // request ends with a slash
       // redirect to the document representing the directory
       response.sendRedirect(
-        "../"+request.getPathInfo().substring(0, request.getPathInfo().length()-1) + ".html");
+        request.getContextPath()
+        +request.getPathInfo().substring(0, request.getPathInfo().length()-1) + ".html");
       return;
     }
+    if (request.getPathInfo().indexOf(".") < 0) { // no dot, maybe a directory name?
+      File realPath = new File(request.getRealPath(request.getPathInfo()));
+      if (!realPath.exists() || realPath.isDirectory()) {
+        // redirect to the document representing the directory
+        response.sendRedirect(request.getContextPath() +request.getPathInfo() + ".html");
+        return;
+      }
+    }
+    
     
     InputStream contentStream = null;
     try {
@@ -183,6 +194,22 @@ public class ContentServlet extends HttpServlet {
         response.getWriter().write("Move not supported.");
       } // move request
       
+    } catch (Exception x) {
+      x.printStackTrace(System.err);
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.getWriter().write(x.toString());
+    }
+  }
+
+  /**
+   * DELETE handler: Delete the given HTML document.
+   */
+  @Override
+  protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+    try {
+      content.delete(request.getPathInfo());
+      response.getWriter().write("OK");
     } catch (Exception x) {
       x.printStackTrace(System.err);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

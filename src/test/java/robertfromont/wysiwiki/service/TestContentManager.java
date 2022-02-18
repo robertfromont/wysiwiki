@@ -302,6 +302,8 @@ public class TestContentManager {
       "//*[@id='/test/test']", manager.index, XPathConstants.NODE);
     assertNotNull("File now indexed", item);
     assertEquals("Title in index", "create", item.getTextContent());
+    assertNull("index.html not itself in the index",
+               xpath.evaluate("//*[@id='/index']", manager.index, XPathConstants.NODE));
     
     // can't be created again
     try {
@@ -327,6 +329,8 @@ public class TestContentManager {
       "//*[@id='/test/test']", manager.index, XPathConstants.NODE);
     assertNotNull("File still indexed", item);
     assertEquals("New title in index", "update", item.getTextContent());
+    assertNull("index.html not itself in the index",
+               xpath.evaluate("//*[@id='/index']", manager.index, XPathConstants.NODE));
 
     // can be updated again
     manager.update(path, new ByteArrayInputStream("<title>update 2</title>".getBytes()));
@@ -345,6 +349,8 @@ public class TestContentManager {
       "//*[@id='/test/test']", manager.index, XPathConstants.NODE);
     assertNotNull("File still indexed", item);
     assertEquals("New title in index", "update 2", item.getTextContent());
+    assertNull("index.html not itself in the index",
+               xpath.evaluate("//*[@id='/index']", manager.index, XPathConstants.NODE));
 
     // convert into a directory
     assertEquals("Index item is div before adding child", "div", item.getTagName());
@@ -354,6 +360,8 @@ public class TestContentManager {
     item = (Element)xpath.evaluate(
       "//*[@id='/test/test']", manager.index, XPathConstants.NODE);
     assertEquals("Index item is details after adding child", "summary", item.getTagName());
+    assertNull("index.html not itself in the index",
+               xpath.evaluate("//*[@id='/index']", manager.index, XPathConstants.NODE));
 
     // create peer in /test, so it's not deleted
     manager.create(path3, new ByteArrayInputStream("peer".getBytes()));    
@@ -372,16 +380,22 @@ public class TestContentManager {
     item = (Element)xpath.evaluate(
       "//*[@id='/test/test']", manager.index, XPathConstants.NODE);
     assertEquals("Directory name in index", "test", item.getTextContent());
+    assertNull("index.html not itself in the index",
+               xpath.evaluate("//*[@id='/index']", manager.index, XPathConstants.NODE));
 
     // delete child
     manager.delete(path2);
     item = (Element)xpath.evaluate(
       "//*[@id='/test/test']", manager.index, XPathConstants.NODE);
     assertNull("File no longer indexed", item);
+    assertNull("index.html not itself in the index",
+               xpath.evaluate("//*[@id='/index']", manager.index, XPathConstants.NODE));
     
     manager.delete(path3); // be tidy
     item = (Element)xpath.evaluate(
       "//*[@id='/test']", manager.index, XPathConstants.NODE);
     assertNull("Directory no longer indexed", item);
+    assertNull("index.html not itself in the index",
+               xpath.evaluate("//*[@id='/index']", manager.index, XPathConstants.NODE));
   }
 }

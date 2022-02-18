@@ -1,9 +1,11 @@
 let creating = false;
 let editButton = null;
+let deleteButton = null;
 let articleEditor = null;
 const editLabel = "Edit";
 const createLabel = "Create";
 const saveLabel = "Save";
+const deleteLabel = "Delete";
 
 function editPage() {
     creating = document.querySelector("title").innerText.startsWith("*");
@@ -22,6 +24,9 @@ function editPage() {
         document.querySelector("#main>article").innerHTML
             = `<h2>${title}</h2><p>Add page text here.</p>`;
         document.querySelector("title").innerText = title;
+    } else {
+        // show delete button
+        deleteButton.style = "display: inherit;";
     }
     InlineEditor.create(document.querySelector("#main>article"), {
         //toolbar:
@@ -63,9 +68,6 @@ function savePage() {
         // determine the href
         const href = document.querySelector("base").getAttribute("href");
         
-        // update title in menu
-        //TODO $(`#${idInMenu} > a`).html(title);
-        
         // get the article content
         const article = articleEditor.getData();
         
@@ -99,7 +101,7 @@ function savePage() {
             editButton.onclick = editPage;
             
             // show delete button
-            //TODO $("#delete").show();
+            deleteButton.style = "display: inherit;";
         });
         oReq.addEventListener("error", function(r) {
             alert(`${r.status}: ${r.statusText}\n${r.responseText}`);
@@ -112,26 +114,27 @@ function savePage() {
     oReq.send();
 }
 
-/*
 function deletePage() {
     if (confirm("Are you sure you want to delete this page?")) {
         if (articleEditor) {
             articleEditor.destroy();
             articleEditor = null;
         }
-        $.ajax({
-            type: "DELETE",
-            url: document.URL,
-            contentType: "text/html"
-        }).done(data=>{
+        let oReq = new XMLHttpRequest();
+        oReq.addEventListener("load", function(e) {
+            console.log("Response: " + this.responseText);
             alert("Deleted");
             window.location.href = new URL(".", document.URL);
-        }).fail(r=>{
+        });
+        oReq.addEventListener("error", function(r) {
             alert(`${r.status}: ${r.statusText}\n${r.responseText}`);
         });
+        oReq.open("DELETE", document.URL);
+        oReq.setRequestHeader("Content-Type", "text/html");
+        oReq.send()
     } // are you sure?
 }
-*/
+
 // ensure they don't accidentally navigate away without saving
 window.addEventListener("beforeunload", function() {
     if (articleEditor) {
@@ -154,7 +157,14 @@ window.addEventListener("load", function(e) {
     editButton.id = "edit"
     editButton.innerHTML = editLabel;
     editButton.onclick = editPage;
+    // Add delete button
+    deleteButton = document.createElement("button");
+    deleteButton.id = "delete"
+    deleteButton.style = "display: none;";
+    deleteButton.innerHTML = deleteLabel;
+    deleteButton.onclick = deletePage;
     const aside = document.querySelector("aside");
     aside.appendChild(editButton);
+    aside.appendChild(deleteButton);
 }, false);
 
