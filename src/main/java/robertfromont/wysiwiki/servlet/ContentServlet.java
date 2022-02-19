@@ -28,15 +28,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Iterator;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.disk.*;
+import org.apache.commons.fileupload.servlet.*;
 import robertfromont.wysiwiki.service.ContentManager;
 
 /**
@@ -214,6 +220,62 @@ public class ContentServlet extends HttpServlet {
       x.printStackTrace(System.err);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       response.getWriter().write(x.toString());
+    }
+  }
+  
+  /**
+   * POST handler: for saving images and other assets.
+   */
+  @Override
+  @SuppressWarnings("rawtypes")
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
+    try {
+      if (ServletFileUpload.isMultipartContent(request)) { // file being uploaded
+        
+        // take the first file we find
+        ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+        List items = upload.parseRequest(request);
+        Iterator it = items.iterator();
+        FileItem fileItem = null;
+        while (it.hasNext()) {
+          FileItem item = (FileItem) it.next();
+          if (!item.isFormField()) {
+            fileItem = item;
+            break;
+          }            
+        } // next part
+        if (fileItem == null) {
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          response.getWriter().write("No file received.");
+        } else { // file found
+          
+          File file = new File(getServletContext().getRealPath(request.getPathInfo()));
+          if (!file.getParentFile().exists()) {
+            Files.createDirectories(file.getParentFile().toPath());
+          }
+          if (file.exists()) {
+            // get a non-existent file name
+            File dir = file.getParentFile();
+            String name = file.getName().replaceAll("\\.[^.]*$","");
+            String ext = file.getName().replaceAll(".*\\.([^.]*)$","$1");
+            int i = 0;
+            do {
+              file = new File(dir, name + "-" + (++i) + "." + ext);
+            } while(file.exists());
+          }
+          fileItem.write(file);
+
+          response.getWriter().write("."+request.getPathInfo().replaceAll("[^/]+$", file.getName()));          
+        } // file found
+      } // file being uploaded
+    } catch (Exception x) {
+      x.printStackTrace(System.err);
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      response.getOutputStream().write(x.getMessage().getBytes());
     }
   }
 

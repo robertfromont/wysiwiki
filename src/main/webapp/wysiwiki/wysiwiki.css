@@ -17,7 +17,7 @@ header, footer {
     padding-left: 10px;
 }
 .index div {
-    padding-left: 20px;
+    padding-left: 25px;
 }
 .index span {
     float: right;
@@ -91,4 +91,8 @@ nav iframe {
 
 .index button {
     width: fit-content;
+}
+
+figure img {
+    max-width: 100%;
 }
