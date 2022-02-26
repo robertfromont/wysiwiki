@@ -1,11 +1,14 @@
+let editable = false;
 let creating = false;
 let editButton = null;
 let deleteButton = null;
 let articleEditor = null;
+let loginButton = null;
 const editLabel = "Edit";
 const createLabel = "Create";
 const saveLabel = "Save";
 const deleteLabel = "Delete";
+const loginLabel = "Login";
 
 class WysiwikiUploadAdapter {
     constructor( loader ) {
@@ -238,32 +241,70 @@ function deletePage() {
 window.addEventListener("message", function(e) {
     // message that was passed from iframe page
     const message = e.data;
-    const resource = message.resource;
-    for (let iframe of document.querySelectorAll(`iframe[src=\"${resource}\"]`)) {    
-        iframe.style.height = message.height + 'px';
+    if (message.resource) {
+        const resource = message.resource;
+        for (let iframe of document.querySelectorAll(`iframe[src=\"${resource}\"]`)) {    
+            iframe.style.height = message.height + 'px';
+        }
+        if (editable) { // maybe we already know if the index is editable
+            // let index know it can add buttons
+            window.top.postMessage("editable", "*");
+        }
     }
 }, false);
 
 window.addEventListener("load", function(e) {
-    const aside = document.querySelector("aside");
-    
-    // Add edit button
-    editButton = document.createElement("button");
-    editButton.id = "edit"
-    editButton.innerHTML = editLabel;
-    editButton.onclick = editPage;
-    aside.appendChild(editButton);
-    
-    // Add delete button
-    deleteButton = document.createElement("button");
-    deleteButton.id = "delete"
-    deleteButton.style = "display: none;";
-    deleteButton.innerHTML = deleteLabel;
-    deleteButton.onclick = deletePage;
-    aside.appendChild(deleteButton);
-    
-    creating = document.querySelector("title").innerText.startsWith("*");
-    if (creating) editPage();
+    // determine whether they can update the page by makeing an OPTIONS request
+    let oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", function(e) {
+        const aside = document.querySelector("aside");
+
+        // can they update the page?
+        if (oReq.getResponseHeader("Allow").includes("PUT")) {
+            editable = true;
+            
+            // Add edit button
+            editButton = document.createElement("button");
+            editButton.id = "edit"
+            editButton.innerHTML = editLabel;
+            editButton.onclick = editPage;
+            aside.appendChild(editButton);
+            
+            creating = document.querySelector("title").innerText.startsWith("*");
+
+            // let index know it can add buttons, if it's already loaded
+            window.nav.postMessage("editable", "*");
+
+        }
+
+        // can they delete the page?
+        if (oReq.getResponseHeader("Allow").includes("DELETE")) {
+            // Add delete button
+            deleteButton = document.createElement("button");
+            deleteButton.id = "delete"
+            deleteButton.style = "display: none;";
+            deleteButton.innerHTML = deleteLabel;
+            deleteButton.onclick = deletePage;
+            aside.appendChild(deleteButton);            
+        }
+        
+        // can they log in?
+        if (oReq.getResponseHeader("Allow").includes("LOGIN")) {
+            // Add log button
+            loginButton = document.createElement("button");
+            loginButton.id = "login"
+            loginButton.innerHTML = loginLabel;
+            loginButton.onclick = () => window.location.href = "./login";
+            aside.appendChild(loginButton);
+        }
+        
+        if (creating) editPage();
+    }); // load OPTIONS request content
+    oReq.addEventListener("error", function(r) {
+        alert(`${r.status}: ${r.statusText}\n${r.responseText}`);
+    });
+    oReq.open("OPTIONS", document.URL);
+    oReq.send();
 }, false);
 
 // ensure they don't accidentally navigate away without saving

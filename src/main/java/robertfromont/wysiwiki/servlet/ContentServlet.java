@@ -33,13 +33,20 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 import java.util.Iterator;
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.catalina.Group;
+import org.apache.catalina.Role;
+import org.apache.catalina.User;
+import org.apache.catalina.UserDatabase;
 import org.apache.commons.fileupload.*;
 import org.apache.commons.fileupload.disk.*;
 import org.apache.commons.fileupload.servlet.*;
@@ -49,7 +56,7 @@ import robertfromont.wysiwiki.service.ContentManager;
  * Serves content, and handle content update requests.
  * @author Robert Fromont robert@fromont.net.nz
  */
-@WebServlet({"/*"})
+@WebServlet(urlPatterns={"/*"}, loadOnStartup=1)
 public class ContentServlet extends HttpServlet {
 
   ContentManager content;
@@ -75,7 +82,6 @@ public class ContentServlet extends HttpServlet {
       content = new ContentManager().setRoot(rootPath);
 
       log("Ready");
-      
     } catch (Exception x) {
       log("failed", x);
     } 
@@ -108,9 +114,8 @@ public class ContentServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() +request.getPathInfo() + ".html");
         return;
       }
-    }
-    
-    
+    }    
+
     InputStream contentStream = null;
     try {
       contentStream = content.read(request.getPathInfo());
@@ -277,6 +282,45 @@ public class ContentServlet extends HttpServlet {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       response.getOutputStream().write(x.getMessage().getBytes());
     }
+  }
+
+  @Override
+  /**
+   * OPTIONS handler: specifies what HTML methods are allowed, depending on the user access.
+   */
+  protected void doOptions(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+    String allow = "OPTIONS, GET";
+    try {
+      String username = request.getRemoteUser();
+      if (username == null) { // look for Authorization header
+        String authorization = request.getHeader("Authorization");
+        if (authorization != null && authorization.startsWith("Basic ")) {
+          String encodedAuth = authorization.substring("Basic ".length());
+          String decodedAuth = new String(Base64.getDecoder().decode(encodedAuth.getBytes()));
+          username = decodedAuth.split(":")[0];
+        }        
+      }
+      
+      if (username != null) {
+        Context initCtx = new InitialContext();
+        UserDatabase users = (UserDatabase)initCtx.lookup("java:comp/env/wysiwiki-users");
+        User user = users.findUser(username);
+        Role author = users.findRole("author");
+        if (author != null) {
+          if (user.isInRole(author)) {
+            allow += ", PUT, POST, DELETE";
+          }
+        }
+      } else { // not logged in
+        // LOGIN isn't a valid method, but we use this so the caller can know whether to present
+        // a login link or not
+        allow += ", LOGIN";
+      }
+    } catch (Exception x) {
+      log("doOptions ERROR: " + x);
+    }
+    response.addHeader("Allow", allow);
   }
 
 } // end of class ContentServlet

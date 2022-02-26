@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <Context reloadable="true">
   <Resources cacheMaxSize="100000" cachingAllowed="true"/>
+  <Realm className="org.apache.catalina.realm.LockOutRealm">
+    <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+           resourceName="wysiwiki-users"/>
+  </Realm>
+  <ResourceLink name="wysiwiki-users"
+                global="wysiwiki-users"
+                type="org.apache.catalina.UserDatabase"
+                />
 </Context>

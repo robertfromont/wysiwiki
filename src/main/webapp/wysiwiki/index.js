@@ -1,4 +1,5 @@
 const baseURL = document.baseURI.replace(/\/index\.html$/,"");
+let currentId = null;
 
 function reportDimensions() {
     let message = {
@@ -14,10 +15,10 @@ function reportDimensions() {
 window.addEventListener("load", function(e) {
     const currentUrl = document.referrer;
     if (currentUrl) {
-        let currentId = currentUrl.substring(baseURL.length)
+        currentId = currentUrl.substring(baseURL.length)
               .replace(/\.html$/,"");
         if (currentId == "/home") currentId = "/";
-        const item = document.getElementById(currentId);
+        let item = document.getElementById(currentId);
         
         // Expand the index tree to current page
         let expandId = currentId;
@@ -28,44 +29,55 @@ window.addEventListener("load", function(e) {
             details = document.getElementById(expandId);
         } // next ancestor in the tree
 
-        if (item) { // the page exists
-            
+        if (item) { // the page exists            
             // Mark the current page in the index
             item.classList.add("current");
-
-            // Create peer page button
-            const peerButton = document.createElement("button");
-            peerButton.id = "peer"
-            peerButton.innerHTML = "+"; // TODO something better
-            peerButton.title = "New peer page";
-            peerButton.onclick = function() {
-                newPage(currentId.replace(/\/[^\/]*$/,""));
-            };
-            if (item.tagName == "DIV" // plain page
-                || currentId == "/") { // home
-                item.parentElement.appendChild(peerButton);
-            } else { // directory
-                item.parentElement.parentElement.appendChild(peerButton);
-            }
-
-            if (currentId != "/") {
-                // Create child page button
-                const childButton = document.createElement("button");
-                childButton.id = "child"
-                childButton.innerHTML = "+"; // TODO something better
-                childButton.title = "New child page";
-                childButton.onclick = function() {
-                    newPage(currentId);
-                };
-                if (item.tagName == "DIV") { // plain page
-                    item.appendChild(childButton);
-                } else { // directory
-                    item.parentElement.appendChild(childButton);
-                }
-            }
         } // the page exists
     }
 }, false);
+
+window.addEventListener("message", function(e) {
+    // message that was passed from iframe page
+    const message = e.data;
+    if (message == "editable") addButtons();
+}, false);
+
+function addButtons() {
+    let item = document.getElementById(currentId);
+    if (item) { // the page exists
+        
+        // Create peer page button
+        const peerButton = document.createElement("button");
+        peerButton.id = "peer"
+        peerButton.innerHTML = "+"; // TODO something better
+        peerButton.title = "New peer page";
+        peerButton.onclick = function() {
+            newPage(currentId.replace(/\/[^\/]*$/,""));
+        };
+        if (item.tagName == "DIV" // plain page
+            || currentId == "/") { // home
+            item.parentElement.appendChild(peerButton);
+        } else { // directory
+            item.parentElement.parentElement.appendChild(peerButton);
+        }
+        
+        if (currentId != "/") {
+            // Create child page button
+            const childButton = document.createElement("button");
+            childButton.id = "child"
+            childButton.innerHTML = "+"; // TODO something better
+            childButton.title = "New child page";
+            childButton.onclick = function() {
+                newPage(currentId);
+            };
+            if (item.tagName == "DIV") { // plain page
+                item.appendChild(childButton);
+            } else { // directory
+                item.parentElement.appendChild(childButton);
+            }
+        }
+    } // the page exists
+}
 
 function newPage(parentId) {
     const title = prompt("Page Title");

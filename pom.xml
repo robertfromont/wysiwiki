@@ -26,6 +26,12 @@
       <version>3.0.1</version>
       <scope>provided</scope>
     </dependency>
+    <!-- https://jmaven.com/maven/org.apache.tomcat/catalina --> 
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>catalina</artifactId>
+      <version>6.0.53</version>
+    </dependency>
     <!-- https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload -->
     <dependency>
       <groupId>commons-fileupload</groupId>

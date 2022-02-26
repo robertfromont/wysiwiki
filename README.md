@@ -15,3 +15,28 @@ Features:
 
 Create/Read/Update/Delete operations and indexing are managed on the back end with a Java servlet.
 
+## Building
+
+1. Ensure you've got Mavin installed.
+1. Run the following command in the base directory:  
+   `mvn package`
+
+This will build a web application archive: `target/wysiwiki.war`
+
+## Installation
+
+1. Drop *wysiwiki.war* into Tomcat's webapps directory.
+1. Edit Tomcat's *server.xml*, inserting the following into the `<GlobalNamingResources>` tag:
+```
+    <Resource name="wysiwiki-users" auth="Container"
+              type="org.apache.catalina.UserDatabase"
+              description="User database that can be updated and saved"
+              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+              pathname="conf/wysiwiki-users.xml"
+	      readonly="false"/>
+```
+1. Restart Tomcat.
+1. Browse to `http://${hostname}/wysiwiki`
+
+The default author username is `wysiwiki` with a password `wysiwiki`.
+
