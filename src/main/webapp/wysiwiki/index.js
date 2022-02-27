@@ -1,5 +1,9 @@
 const baseURL = document.baseURI.replace(/\/index\.html$/,"");
 let currentId = null;
+let peerButton = null;
+let childButton = null;
+const newPeerLabel = "+";
+const newChildLabel = "+";
 
 function reportDimensions() {
     let message = {
@@ -24,7 +28,9 @@ window.addEventListener("load", function(e) {
         let expandId = currentId;
         let details = document.getElementById(expandId);
         while (expandId && expandId != "/") {
-            details.parentElement.setAttribute("open", true);
+            if (details) {
+                details.parentElement.setAttribute("open", true);
+            }
             expandId = expandId.replace(/\/[^\/]*$/,"");
             details = document.getElementById(expandId);
         } // next ancestor in the tree
@@ -45,27 +51,29 @@ window.addEventListener("message", function(e) {
 function addButtons() {
     let item = document.getElementById(currentId);
     if (item) { // the page exists
-        
-        // Create peer page button
-        const peerButton = document.createElement("button");
-        peerButton.id = "peer"
-        peerButton.innerHTML = "+"; // TODO something better
-        peerButton.title = "New peer page";
-        peerButton.onclick = function() {
-            newPage(currentId.replace(/\/[^\/]*$/,""));
-        };
-        if (item.tagName == "DIV" // plain page
-            || currentId == "/") { // home
-            item.parentElement.appendChild(peerButton);
-        } else { // directory
-            item.parentElement.parentElement.appendChild(peerButton);
+
+        if (!peerButton) {
+            // Create peer page button
+            peerButton = document.createElement("button");
+            peerButton.id = "peer"
+            peerButton.innerHTML = newPeerLabel;
+            peerButton.title = "New peer page";
+            peerButton.onclick = function() {
+                newPage(currentId.replace(/\/[^\/]*$/,""));
+            };
+            if (item.tagName == "DIV" // plain page
+                || currentId == "/") { // home
+                item.parentElement.appendChild(peerButton);
+            } else { // directory
+                item.parentElement.parentElement.appendChild(peerButton);
+            }
         }
         
-        if (currentId != "/") {
+        if (currentId != "/" && !childButton) {
             // Create child page button
-            const childButton = document.createElement("button");
+            childButton = document.createElement("button");
             childButton.id = "child"
-            childButton.innerHTML = "+"; // TODO something better
+            childButton.innerHTML = newChildLabel;
             childButton.title = "New child page";
             childButton.onclick = function() {
                 newPage(currentId);
