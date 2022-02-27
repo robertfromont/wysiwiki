@@ -2,11 +2,13 @@ let editable = false;
 let creating = false;
 let editButton = null;
 let deleteButton = null;
+let postButton = null;
 let articleEditor = null;
 let loginButton = null;
 const editLabel = "Edit";
 const createLabel = "Create";
 const saveLabel = "Save";
+const postLabel = "Post";
 const deleteLabel = "Delete";
 const loginLabel = "Login";
 
@@ -112,7 +114,7 @@ class WysiwikiUploadAdapter {
 function editPage() {
     if (creating) {
         // add some default content
-        let title = document.URL // file name by default
+        let title = decodeURI(document.URL) // file name by default
             .replace(/.*\//, "")
             .replace(/\.html$/, "");
         // if there's a hash, assume it's intended to be the title
@@ -158,7 +160,8 @@ function savePage() {
         let html = this.responseText;
         
         // determine the document title
-        let title = document.URL // file name by default
+        let title = decodeURI( // Convert %20 to space, etc.
+            document.URL) // file name by default
             .replace(/.*\//, "")
             .replace(/\.html$/, "");
         let heading = document.querySelector("#main>article>h1")
@@ -185,6 +188,10 @@ function savePage() {
             console.log("Response: " + this.responseText);
             // reload navigation
             window.frames["nav"].location.reload();
+            // show buttons in index too, giving time for it to reload
+            setTimeout(()=>{
+                window.nav.postMessage("editable", "*");
+            }, 1500);
             
             // TODO if (creating) {
             //     alert("Created");
@@ -201,8 +208,9 @@ function savePage() {
             editButton.innerHTML = editLabel;
             editButton.onclick = editPage;
             
-            // show delete button
+            // show delete and post buttons
             deleteButton.style = "display: inherit;";
+            postButton.style = "display: inherit;";
 
             creating = false;
         });
@@ -236,6 +244,58 @@ function deletePage() {
         oReq.setRequestHeader("Content-Type", "text/html");
         oReq.send()
     } // are you sure?
+}
+
+function newPost() {
+    // default path is yyyy/mm/dd-hh.mm
+    let postPath = new Date()
+        .toISOString().replace(/-/g,"/").replace(/T/,"-").replace(/:/g,".").substring(0,16)
+        + ".html";
+    let title = prompt("Post Title");
+    if (title) { // use title instead of time
+        // i.e. yyyy/mm/dd-slugged-title
+        postPath = new Date()
+            .toISOString().replace(/-/g,"/").substring(0,10)
+            + "-" + slugify(title)
+            + ".html";
+    } else {
+        title = new Date().toLocaleString();
+    }
+    let postParent = document.URL
+        .replace(/#.*/,"") // get rid of hash
+        .replace(/[0-9/]+\/[^/]*$/,"") // look back through the URL for a non-digit parent
+        .replace(/\.html/,"") // if we're on the parent now, remove the .html
+        .replace(/\/home/,"") // if we're on the home page, use the base URL as the parnt
+    let url = `${postParent}/${postPath}`;
+    if (title) {
+        url += `#${title}`;
+    }
+    window.top.location = url;
+}
+
+// Slugify a string
+// thanks to https://lucidar.me/en/web-dev/how-to-slugify-a-string-in-javascript/
+function slugify(str) {
+    str = str.replace(/^\s+|\s+$/g, '');
+
+    // Make the string lowercase
+    str = str.toLowerCase();
+
+    // Remove accents, swap ñ for n, etc
+    var from = "ÁÄÂÀÃÅČÇĆĎÉĚËÈÊẼĔȆÍÌÎÏŇÑÓÖÒÔÕØŘŔŠŤÚŮÜÙÛÝŸŽáäâàãåčçćďéěëèêẽĕȇíìîïňñóöòôõøðřŕšťúůüùûýÿžþÞĐđßÆa·/_,:;";
+    var to   = "AAAAAACCCDEEEEEEEEIIIINNOOOOOORRSTUUUUUYYZaaaaaacccdeeeeeeeeiiiinnooooooorrstuuuuuyyzbBDdBAa------";
+    for (var i=0, l=from.length ; i<l ; i++) {
+        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+    }
+
+    // Remove invalid chars
+    str = str.replace(/[^a-z0-9 -]/g, '') 
+    // Collapse whitespace and replace by -
+    .replace(/\s+/g, '-') 
+    // Collapse dashes
+    .replace(/-+/g, '-'); 
+
+    return str;
 }
 
 window.addEventListener("message", function(e) {
@@ -274,7 +334,6 @@ window.addEventListener("load", function(e) {
 
             // let index know it can add buttons, if it's already loaded
             window.nav.postMessage("editable", "*");
-
         }
 
         // can they delete the page?
@@ -287,7 +346,22 @@ window.addEventListener("load", function(e) {
             deleteButton.onclick = deletePage;
             aside.appendChild(deleteButton);            
         }
-        
+
+        if (oReq.getResponseHeader("Allow").includes("PUT")) {
+            // Create post button (after delete button)
+            postButton = document.createElement("button");
+            postButton.id = "post"
+            if (creating) {
+                postButton.style = "display: none;";
+            }
+            postButton.innerHTML = postLabel;
+            postButton.title = "New post for the current date/time";
+            postButton.onclick = function() {
+                newPost();
+            };
+            aside.appendChild(postButton);
+        }
+
         // can they log in?
         if (oReq.getResponseHeader("Allow").includes("LOGIN")) {
             // Add log button
