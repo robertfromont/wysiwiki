@@ -5,12 +5,12 @@ let deleteButton = null;
 let postButton = null;
 let articleEditor = null;
 let loginButton = null;
-const editLabel = "Edit";
-const createLabel = "Create";
-const saveLabel = "Save";
-const postLabel = "Post";
-const deleteLabel = "Delete";
-const loginLabel = "Login";
+const editLabel = "🖉";
+const createLabel = "🖪";
+const saveLabel = "💾";
+const postLabel = "＋";
+const deleteLabel = "❌";
+const loginLabel = "🔓";
 
 class WysiwikiUploadAdapter {
     constructor( loader ) {
@@ -125,7 +125,7 @@ function editPage() {
         }
 
         document.querySelector("#main>article").innerHTML
-            = `<h2>${title}</h2><p>Add page text here.</p>`;
+            = `<h2>${title}</h2><p></p>`;
         document.querySelector("title").innerText = title;
     } else {
         // show delete button
@@ -146,8 +146,16 @@ function editPage() {
             return new WysiwikiUploadAdapter( loader );
         };        
         editButton.innerHTML = creating?createLabel:saveLabel;
+        editButton.title = creating?"Create Page":"Save Page";
         editButton.onclick = savePage;
+        // ensure the user can start typing immediately
         editor.focus();
+        // put cursor at the end
+        editor.model.change( writer => {
+            writer.setSelection(
+                writer.createPositionAt(
+                    editor.model.document.getRoot(), 'end' ) );
+        });
         articleEditor = editor;
     });
 }
@@ -155,7 +163,7 @@ function editPage() {
 function savePage() {
     // get template
     let oReq = new XMLHttpRequest();
-    oReq.open("GET", "template.html"); // TODO baseURL
+    oReq.open("GET", "template.html");
     oReq.addEventListener("load", function(e) {
         let html = this.responseText;
         
@@ -185,7 +193,6 @@ function savePage() {
 
         oReq = new XMLHttpRequest();
         oReq.addEventListener("load", function(e) {
-            console.log("Response: " + this.responseText);
             // reload navigation
             window.frames["nav"].location.reload();
             // show buttons in index too, giving time for it to reload
@@ -206,6 +213,7 @@ function savePage() {
             articleEditor.destroy();
             articleEditor = null;            
             editButton.innerHTML = editLabel;
+            editButton.title = "Edit Page";
             editButton.onclick = editPage;
             
             // show delete and post buttons
@@ -247,30 +255,105 @@ function deletePage() {
 }
 
 function newPost() {
+    let title = prompt("Title of new post");
+    if (title == null) return; // cancelled
+    
+    const postParent = document.URL
+          .replace(/#.*/,"") // get rid of hash
+          .replace(/[0-9/]+\/[^/]*$/,"") // look back through the URL for a non-digit parent
+          .replace(/\.html/,"") // if we're on the parent now, remove the .html
+          .replace(/\/home/,"") // if we're on the home page, use the base URL as the parnt
+    const now = new Date()
+    const dateParts = now.toDateString().split(" ");
+
+    const ensureYearPageExists = new Promise((resolve, reject) => {
+        // posts are created under yyyy/mm/... so we make sure that the year directory exists
+        const yearPath = now.toISOString().substring(0,4) + ".html";
+        const yearUrl = `${postParent}/${yearPath}`;
+        let oYearReq = new XMLHttpRequest();
+        oYearReq.open("GET", yearUrl);
+        oYearReq.addEventListener("load", function(e) {
+            if (this.status == 404) { // page doesn't exist yet
+                // create the page
+                let yearHtml = this.responseText;
+                // ...with just the year name as the title
+                const yearName = now.toISOString().substring(0,4);
+                yearHtml = yearHtml
+                    .replace(/<article>.*<\/article>/, `<article><h2>${yearName}</h2></article>`)
+                    .replace(/<title>[^<]*<\/title>/, `<title>${yearName}</title>`);
+                // create the document TODO
+                oYearReq = new XMLHttpRequest();
+                oYearReq.open("PUT", yearUrl);
+                oYearReq.addEventListener("load", function(e) {
+                    if (this.status == 200) {
+                        resolve();
+                    } else {
+                        reject();
+                    }
+                });
+                oYearReq.send(yearHtml);
+            } else {
+                resolve();
+            }
+        });
+        oYearReq.send();
+    });
+    const ensureMonthPageExists = new Promise((resolve, reject) => {
+        // posts are created under yyyy/mm/... so we make sure that the mont directory exists
+        const monthPath = now.toISOString().replace(/-/g,"/").substring(0,7) + ".html";
+        const monthUrl = `${postParent}/${monthPath}`;
+        let oMonthReq = new XMLHttpRequest();
+        oMonthReq.open("GET", monthUrl);
+        oMonthReq.addEventListener("load", function(e) {
+            if (this.status == 404) { // page doesn't exist yet
+                // create the page
+                let monthHtml = this.responseText;
+                // ...with just the month name as the title
+                const monthName = dateParts[1];
+                monthHtml = monthHtml
+                    .replace(/<article>.*<\/article>/, `<article><h2>${monthName}</h2></article>`)
+                    .replace(/<title>[^<]*<\/title>/, `<title>${monthName}</title>`);
+                // create the document TODO
+                oMonthReq = new XMLHttpRequest();
+                oMonthReq.open("PUT", monthUrl);
+                oMonthReq.addEventListener("load", function(e) {
+                    if (this.status == 200) {
+                        resolve();
+                    } else {
+                        reject();
+                    }
+                });
+                oMonthReq.send(monthHtml);
+            } else {
+                resolve();
+            }
+        });
+        oMonthReq.send();
+    });
+    
     // default path is yyyy/mm/dd-hh.mm
-    let postPath = new Date()
+    let html = this.responseText;
+    let postPath = now
         .toISOString().replace(/-/g,"/").replace(/T/,"-").replace(/:/g,".").substring(0,16)
         + ".html";
-    let title = prompt("Post Title");
     if (title) { // use title instead of time
         // i.e. yyyy/mm/dd-slugged-title
-        postPath = new Date()
-            .toISOString().replace(/-/g,"/").substring(0,10)
+        postPath = now.toISOString().replace(/-/g,"/").substring(0,10)
             + "-" + slugify(title)
             + ".html";
     } else {
-        title = new Date().toLocaleString();
+        const timeWithoutSeconds = now.toTimeString().replace(/:[^:]*$/,"");
+        title = `${dateParts[0]} ${dateParts[2]}, ${timeWithoutSeconds}`; // "Mon 28, 13:12"
     }
-    let postParent = document.URL
-        .replace(/#.*/,"") // get rid of hash
-        .replace(/[0-9/]+\/[^/]*$/,"") // look back through the URL for a non-digit parent
-        .replace(/\.html/,"") // if we're on the parent now, remove the .html
-        .replace(/\/home/,"") // if we're on the home page, use the base URL as the parnt
     let url = `${postParent}/${postPath}`;
     if (title) {
         url += `#${title}`;
     }
-    window.top.location = url;
+    ensureYearPageExists.then(()=>{
+        ensureMonthPageExists.then(()=>{
+            window.top.location = url;
+        });
+    });
 }
 
 // Slugify a string
@@ -327,6 +410,7 @@ window.addEventListener("load", function(e) {
             editButton = document.createElement("button");
             editButton.id = "edit"
             editButton.innerHTML = editLabel;
+            editButton.title = "Edit Page"
             editButton.onclick = editPage;
             aside.appendChild(editButton);
             
@@ -343,6 +427,7 @@ window.addEventListener("load", function(e) {
             deleteButton.id = "delete"
             deleteButton.style = "display: none;";
             deleteButton.innerHTML = deleteLabel;
+            deleteButton.title = "Delete Page"
             deleteButton.onclick = deletePage;
             aside.appendChild(deleteButton);            
         }
@@ -368,6 +453,7 @@ window.addEventListener("load", function(e) {
             loginButton = document.createElement("button");
             loginButton.id = "login"
             loginButton.innerHTML = loginLabel;
+            loginButton.title = "Log In"
             loginButton.onclick = () => window.location.href = "./login";
             aside.appendChild(loginButton);
         }

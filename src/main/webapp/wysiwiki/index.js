@@ -2,8 +2,8 @@ const baseURL = document.baseURI.replace(/\/index\.html$/,"");
 let currentId = null;
 let peerButton = null;
 let childButton = null;
-const newPeerLabel = "+";
-const newChildLabel = "+";
+const newPeerLabel = "＋";
+const newChildLabel = "＋";
 
 function reportDimensions() {
     let message = {

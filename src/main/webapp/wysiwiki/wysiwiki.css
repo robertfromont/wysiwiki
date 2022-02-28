@@ -32,6 +32,10 @@ header, footer, aside {
 aside > button > img {
     height: 20px;
 }
+button {
+    border-radius: 50%;
+    font-size: large;
+}
 /* Wide enough to support three columns */
 @media all and (min-width: 640px) {
     #main { flex-direction: row; }
