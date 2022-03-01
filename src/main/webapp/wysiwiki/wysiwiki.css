@@ -2,10 +2,10 @@ body, #main {
     display: flex;
     flex-direction: column;
 }
-body > header, body > footer, #main > article, #main > nav, #main > aside {
-    /* Return them to document order */
-    order: 0;
-}
+#main > article { order: 1; } /* article first */
+#main > aside   { order: 2; } /* save buttons etc. below so that edit tools don't cover them */
+#main > nav     { order: 3; } /* navigation menu at the bottom */
+
 header, footer {
     display: block;
 }
@@ -29,19 +29,31 @@ header, footer {
 header, footer, aside {
     text-align: center;
 }
-aside > button > img {
-    height: 20px;
-}
-button {
+.index button, aside button {
     border-radius: 50%;
-    font-size: large;
+    aspect-ratio: 1;
+    line-height: 100%;
 }
+aside button {
+    font-size: x-large;
+    float: right;
+}
+
+button#post {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+}
+button#edit, button# {
+    float: right;
+}
+
 /* Wide enough to support three columns */
 @media all and (min-width: 640px) {
     #main { flex-direction: row; }
-    #main > nav     { order: 1; }
-    #main > article { order: 2; }
-    #main > aside   { order: 3; }
+    #main > nav     { order: 1; } /* navigation menu on the left */
+    #main > article { order: 2; } /* article in the middle */
+    #main > aside   { order: 3; } /* save button etc. on the right */
     
     #main > nav {
         text-align: left;
@@ -55,27 +67,9 @@ button {
         padding: 20px;
         width: 70%;
     }
-}
-
-@keyframes spinner {
-  to {transform: rotate(360deg);}
-}
-.loading {
-    z-index: 2;
-    cursor: wait;
-    background: white;
-    opacity: 0.5;
-}
-.loading:before {
-  content: '';
-  box-sizing: border-box;
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  border-top-color: #859044;
-  animation: spinner .6s linear infinite;
+    .index button, aside button { /** Buttons don't need to be finger size */
+        font-size: inherit;
+    }
 }
 
 iframe {

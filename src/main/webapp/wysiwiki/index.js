@@ -84,6 +84,9 @@ function addButtons() {
                 item.parentElement.appendChild(childButton);
             }
         }
+
+        // our size may have changed
+        reportDimensions();
     } // the page exists
 }
 
