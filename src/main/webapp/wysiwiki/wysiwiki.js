@@ -1,3 +1,9 @@
+// ensure ckeditor is loaded
+var ckeditor5Script = document.createElement("script");
+ckeditor5Script.type = "text/javascript";
+ckeditor5Script.src = "https://cdn.ckeditor.com/ckeditor5/32.0.0/inline/ckeditor.js";
+document.head.appendChild(ckeditor5Script);
+
 let editable = false;
 let creating = false;
 let editButton = null;
@@ -8,7 +14,7 @@ let loginButton = null;
 const editLabel = "🖉";
 const createLabel = "🖪";
 const saveLabel = "💾";
-const postLabel = "＋";
+const postLabel = "📅";
 const deleteLabel = "❌";
 const loginLabel = "🔓";
 
@@ -127,9 +133,6 @@ function editPage() {
         document.querySelector("#main>article").innerHTML
             = `<h2>${title}</h2><p></p>`;
         document.querySelector("title").innerText = title;
-    } else {
-        // show delete button
-        deleteButton.style = "display: inherit;";
     }
     InlineEditor.create(document.querySelector("#main>article"), {
         //toolbar:
@@ -425,7 +428,9 @@ window.addEventListener("load", function(e) {
             // Add delete button
             deleteButton = document.createElement("button");
             deleteButton.id = "delete"
-            deleteButton.style = "display: none;";
+            if (creating) {
+                deleteButton.style = "display: none;";
+            }
             deleteButton.innerHTML = deleteLabel;
             deleteButton.title = "Delete Page"
             deleteButton.onclick = deletePage;
