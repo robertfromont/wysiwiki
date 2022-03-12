@@ -41,7 +41,9 @@ window.addEventListener("load", function(e) {
         } // the page exists
     }
 }, false);
-
+window.addEventListener("resize", function(e) {
+    reportDimensions();
+});
 window.addEventListener("message", function(e) {
     // message that was passed from iframe page
     const message = e.data;

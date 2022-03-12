@@ -48,6 +48,11 @@ button#edit, button# {
     float: right;
 }
 
+a.new-page {
+    text-decoration: none;
+    color: lightgray;
+}
+
 /* Wide enough to support three columns */
 @media all and (min-width: 640px) {
     #main { flex-direction: row; }
@@ -76,6 +81,7 @@ iframe {
     width: 100%;
     border: none;
     padding: 0px;
+    transition: height 0.5s;
 }
 
 body.resource {
