@@ -184,7 +184,11 @@ function savePage() {
         const href = document.querySelector("base").getAttribute("href");
         
         // get the article content
-        const article = articleEditor.getData();
+        const article = articleEditor.getData()
+        // add newlines to make HTML source easier to diff (in case we're using git, etc.)
+              .replace(/<h(\d)?/g,"\n<h$1") // no indent
+              .replace(/<(p|ul|ol|dl|div|figure)([ >])?/g,"\n <$1$2") // one space indent
+              .replace(/<(li|dt|dd|br)([ >])?/g,"\n  <$1$2");
         
         // insert the article content into it
         html = html
