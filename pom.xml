@@ -49,6 +49,11 @@
 
   <build>
     <finalName>wysiwiki</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/webapp</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -77,15 +82,20 @@
           <version>2.22.1</version>
         </plugin>
         <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+          <configuration>
+            <archive>
+              <manifest>
+                <mainClass>robertfromont.wysiwiki.standalone.WebApp</mainClass>
+              </manifest>
+            </archive>
+            <!--outputDirectory>../../bin</outputDirectory-->
+          </configuration>
+        </plugin>
+        <plugin>
           <artifactId>maven-war-plugin</artifactId>
           <version>3.2.2</version>
-          <configuration>
-            <!--webResources>
-              <resource>
-                <directory>src/main/client</directory>
-              </resource>
-            </webResources-->
-          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>

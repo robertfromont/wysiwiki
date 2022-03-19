@@ -235,7 +235,7 @@ public class ContentServlet extends HttpServlet {
   @SuppressWarnings("rawtypes")
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-    response.setContentType("application/json");
+    response.setContentType("text/plain");
     response.setCharacterEncoding("UTF-8");
 
     try {

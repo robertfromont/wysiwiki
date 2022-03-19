@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.ByteArrayInputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -94,6 +95,31 @@ public class ContentManager {
     writeForbidden.add(root.resolve("index.html"));
     writeForbidden.add(root.resolve("rss.xml"));
 
+    Path wysiwiki = root.resolve("wysiwiki");
+
+    // ensure standard files exist
+    String[] wysiwikiFiles = {
+      "wysiwiki.js",
+      "wysiwiki.css",
+      "index.js",
+      "header.html",
+      "footer.html",
+      "template.html",
+      "style.css"
+    };
+    for (String wysiwikiFile : wysiwikiFiles) {      
+      Path file = wysiwiki.resolve(wysiwikiFile);
+      if (!Files.exists(file)) {
+        // unzip it from our own jar file
+        try {
+          URL url = getClass().getResource("/wysiwiki/"+wysiwikiFile);
+          Files.copy(url.openStream(), file);
+        } catch (Throwable t) {
+          System.err.println("Couldn't extract /wysiwiki/" + wysiwikiFile + " : " + t);
+        }
+      } // doesn't exist
+    } // next file
+
     // ensure customizable files are in place TODO
     String[] customizableFiles = {
       "template.html",
@@ -101,7 +127,6 @@ public class ContentManager {
       "footer.html",
       "style.css"
     };
-    Path wysiwiki = root.resolve("wysiwiki");
     for (String name : customizableFiles) {
       Path file = root.resolve(name);
       if (!Files.exists(file)) {

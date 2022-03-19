@@ -262,6 +262,9 @@ public class TestContentManager {
     file.delete();
     file2.delete();
     file3.delete();
+    // ensure home title is predictable
+    manager.update("/home.html", new ByteArrayInputStream("/home.html".getBytes()));
+
 
     // doesn't exist yet
     try {        
@@ -871,7 +874,7 @@ public class TestContentManager {
       }, indexHtml);
 
     // update home
-    manager.update("/home.html", new ByteArrayInputStream("<title>HOME</title>".getBytes()));
+    manager.update("/home.html", new ByteArrayInputStream("<title>HOME PAGE</title>".getBytes()));
     // check index
     diff(new String[] {
         "<!DOCTYPE html>",
@@ -889,7 +892,7 @@ public class TestContentManager {
         "    <body class=\"resource index\">",
         "        <details open=\"true\">",
         "            <summary id=\"/\">",
-        "                <a href=\"home.html\">HOME</a>",
+        "                <a href=\"home.html\">HOME PAGE</a>",
         "            </summary>",
         "            <details>",
         "                <summary id=\"/subdir\">",
