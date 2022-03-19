@@ -306,9 +306,9 @@ public class ContentServlet extends HttpServlet {
         Context initCtx = new InitialContext();
         UserDatabase users = (UserDatabase)initCtx.lookup("java:comp/env/wysiwiki-users");
         User user = users.findUser(username);
-        Role author = users.findRole("author");
-        if (author != null) {
-          if (user.isInRole(author)) {
+        Role write = users.findRole("write");
+        if (write != null) {
+          if (user.isInRole(write)) {
             allow += ", PUT, POST, DELETE";
           }
         }

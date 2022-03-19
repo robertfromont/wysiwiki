@@ -10,7 +10,7 @@
   </parent>
 
   <groupId>robertfromont.wysiwiki</groupId>
-  <artifactId>webapp</artifactId>
+  <artifactId>wysiwiki-webapp</artifactId>
   <version>0.1.0</version>
   <packaging>war</packaging>
 
@@ -25,6 +25,11 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>robert.wysiwiki</groupId>
+      <artifactId>wysiwiki-standalone</artifactId>
+      <version>0.1.0</version>
+    </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>

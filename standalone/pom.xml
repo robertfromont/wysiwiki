@@ -9,7 +9,7 @@
   </parent>
 
   <groupId>robert.wysiwiki</groupId>
-  <artifactId>standalone</artifactId>
+  <artifactId>wysiwiki-standalone</artifactId>
   <version>0.1.0</version>
   <name>wysiwiki-standalone</name>
   <url>https://github.com/robertfromont/wysiwiki</url>

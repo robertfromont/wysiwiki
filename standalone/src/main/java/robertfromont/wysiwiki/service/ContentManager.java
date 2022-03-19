@@ -102,6 +102,7 @@ public class ContentManager {
       "wysiwiki.js",
       "wysiwiki.css",
       "index.js",
+      "resource.js",
       "header.html",
       "footer.html",
       "template.html",
