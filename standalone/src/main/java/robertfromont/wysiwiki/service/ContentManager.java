@@ -434,11 +434,8 @@ public class ContentManager {
           // change tag name
           parentDetails.removeChild(item);
           if (!child.exists() && tagName.equals("div")) { // both dir and .html file deleted
-            if (!parentDetails.hasChildNodes()) { // no more children
-              // delete the <details> tag
-              
-              parentDetails.getParentNode().removeChild(parentDetails);
-            }
+            // delete the <details> tag              
+            parentDetails.getParentNode().removeChild(parentDetails);
           } else {
             addIndexItem(
               parentDetails, child.getParentFile(), child, urlPath.replaceAll("[^/]+$",""),
@@ -627,6 +624,61 @@ public class ContentManager {
     
     return path;
   } // end of update()
+  
+  /**
+   * Moves the given document in the index.
+   * @param urlPath The slash-delimited path to the file, or its ID.
+   * @param where Where to move the index item, "up" (before previous peer) or "down"
+   * (after next peer).
+   * @return true if the index location was moved, false otherwise.
+   * @throws IOException
+   */
+  public boolean move(String urlPath, String where) {
+    try {
+      String id = urlPath.replaceAll("\\.html$", ""); // might be document instead of id
+      if (!id.startsWith("/")) id = "/"+id;
+      if (!id.equals("/")) { // not the home page
+        Element item = (Element)xpath.evaluate(
+          "//*[@id='"+id+"']", index, XPathConstants.NODE);
+        if (item != null) {
+          Element nodeToMove = item.getTagName().equals("div")?
+            item // plain file - we just move the item itself
+            : (Element)item.getParentNode(); // dir - summary, but we want to move the details
+          Node parent = nodeToMove.getParentNode();
+          Element toBeBefore = null;
+          Element toBeAfter = null;          
+          if ("up".equals(where)) { // move up
+            toBeBefore = nodeToMove;
+            // find the previous element, skipping text nodes
+            Node sibling = nodeToMove.getPreviousSibling();
+            while (sibling != null && !(sibling instanceof Element)) {
+              sibling = sibling.getPreviousSibling();
+            } // previous node
+            if (sibling instanceof Element) toBeAfter = (Element)sibling;
+          } else { // move down
+            toBeAfter = nodeToMove;          
+            // find the next element, skipping text nodes
+            Node sibling = nodeToMove.getNextSibling();
+            while (sibling != null && !(sibling instanceof Element)) {
+              sibling = sibling.getNextSibling();
+            } // previous node
+            if (sibling instanceof Element) toBeBefore = (Element)sibling;
+          }
+          if (toBeBefore != null
+              && toBeAfter != null
+              && !toBeAfter.getTagName().equals("summary")) { // not the top of the directory
+            parent.removeChild(toBeBefore);
+            parent.insertBefore(toBeBefore, toBeAfter);
+            writeIndex();
+            return true;
+          }
+        } // id is in the index
+      } // not home page
+    } catch (Exception x) {
+      System.err.println("ContentManager.move("+urlPath+", "+where+") : " + x);
+    }
+    return false;
+  } // end of move()
   
   /**
    * Deletes a file.

@@ -232,19 +232,23 @@ public class WebApp implements HttpHandler {
         responseCode = 403;
         body = "Forbidden";
       } else {
-        //   String move = request.getParameter("move");
-        // if (move == null) { // PUT full content                
-        // back up the old version
-        //TODO backup(html);
-        try {
-          content.update(urlPath, exchange.getRequestBody());
-        } catch(NoSuchFileException exception) {
-          content.create(urlPath, exchange.getRequestBody());
-        }
-        // } else { // move request - only edit the position in the index TODO
-        //   response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        //   response.getWriter().write("Move not supported.");
-        // } // move request
+        String moveWhere = null;
+        String query = exchange.getRequestURI().getQuery();
+        if (query.startsWith("?move=")) moveWhere = query.substring("?move=".length());
+        if (moveWhere == null) { // PUT full content                
+          // back up the old version
+          //TODO backup(html);
+          try {
+            content.update(urlPath, exchange.getRequestBody());
+          } catch(NoSuchFileException exception) {
+            content.create(urlPath, exchange.getRequestBody());
+          }
+        } else { // move request - only edit the position in the index
+          boolean moved = content.move(urlPath, moveWhere);
+          if (!moved) {
+            body = "Could not move " + urlPath + " " + moveWhere;
+          }
+        } // move request
       }      
     } catch (Exception x) {
       x.printStackTrace(System.err);

@@ -265,7 +265,6 @@ public class TestContentManager {
     // ensure home title is predictable
     manager.update("/home.html", new ByteArrayInputStream("/home.html".getBytes()));
 
-
     // doesn't exist yet
     try {        
       manager.read(path).close();
@@ -275,44 +274,45 @@ public class TestContentManager {
 
     // check index
     File indexHtml = new File(dir(), "index.html");
-    diff(new String[] {
-        "<!DOCTYPE html>",
-        "<html>",
-        "    <head>",
-        "        <META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">",
-        "        <meta content=\"text/html; charset=UTF-8\" http-equiv=\"content-type\"> </meta>",
-        "        <meta content=\"width=device-width, initial-scale=1\" name=\"viewport\"> </meta>",
-        "        <base target=\"_top\"> </base>",
-        "        <title>Index</title>",
-        "        <link href=\"wysiwiki/wysiwiki.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
-        "        <link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
-        "        <script src=\"wysiwiki/index.js\"></script>",
-        "    </head>",
-        "    <body class=\"resource index\">",
-        "        <details open=\"true\">",
-        "            <summary id=\"/\">",
-        "                <a href=\"home.html\">home</a>",
-        "            </summary>",
-        "            <details>",
-        "                <summary id=\"/subdir\">",
-        "                    <a href=\"subdir.html\">subdir</a>",
-        "                </summary>",
-        "                <details>",
-        "                    <summary id=\"/subdir/subsubdir\">",
-        "                        subsubdir<a class=\"new-page\" href=\"subdir/subsubdir.html\">+</a>",
-        "                    </summary>",
-        "                    <div id=\"/subdir/subsubdir/grandchild\">",
-        "                        <a href=\"subdir/subsubdir/grandchild.html\">grandchild</a>",
-        "                    </div>",
-        "                </details>",
-        "                <div id=\"/subdir/child\">",
-        "                    <a href=\"subdir/child.html\">child</a>",
-        "                </div>",
-        "            </details>",
-        "        </details>",
-        "    </body>",
-        "</html>"
-      }, indexHtml);
+    String[] initialIndex = {
+      "<!DOCTYPE html>",
+      "<html>",
+      "    <head>",
+      "        <META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">",
+      "        <meta content=\"text/html; charset=UTF-8\" http-equiv=\"content-type\"> </meta>",
+      "        <meta content=\"width=device-width, initial-scale=1\" name=\"viewport\"> </meta>",
+      "        <base target=\"_top\"> </base>",
+      "        <title>Index</title>",
+      "        <link href=\"wysiwiki/wysiwiki.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <script src=\"wysiwiki/index.js\"></script>",
+      "    </head>",
+      "    <body class=\"resource index\">",
+      "        <details open=\"true\">",
+      "            <summary id=\"/\">",
+      "                <a href=\"home.html\">home</a>",
+      "            </summary>",
+      "            <details>",
+      "                <summary id=\"/subdir\">",
+      "                    <a href=\"subdir.html\">subdir</a>",
+      "                </summary>",
+      "                <details>",
+      "                    <summary id=\"/subdir/subsubdir\">",
+      "                        subsubdir<a class=\"new-page\" href=\"subdir/subsubdir.html\">+</a>",
+      "                    </summary>",
+      "                    <div id=\"/subdir/subsubdir/grandchild\">",
+      "                        <a href=\"subdir/subsubdir/grandchild.html\">grandchild</a>",
+      "                    </div>",
+      "                </details>",
+      "                <div id=\"/subdir/child\">",
+      "                    <a href=\"subdir/child.html\">child</a>",
+      "                </div>",
+      "            </details>",
+      "        </details>",
+      "    </body>",
+      "</html>"
+    };
+    diff(initialIndex, indexHtml);
 
     // isn't in index
     XPath xpath = XPathFactory.newInstance().newXPath();
@@ -648,7 +648,7 @@ public class TestContentManager {
         "</html>"
       }, indexHtml);
 
-    // can be deleted
+   // can be deleted
     manager.delete(path);
 
     // can no longer be read
@@ -1037,8 +1037,192 @@ public class TestContentManager {
         "    </body>",
         "</html>"
       }, indexHtml);
+
+    // be tidy
+    manager.delete(path);
+    // index should have reverted to initial state because the existing html doc is two deep
+    diff(initialIndex, indexHtml);
+    manager.delete(path2);
+    //manager.delete(path3);
+    diff(initialIndex, indexHtml);
+
   }
-         
+
+  /** Ensure nodes can be moved appropriately in the index. */
+  @Test public void move() throws Exception {
+    // check index starting state
+    File indexHtml = new File(dir(), "index.html");
+    String[] startIndex = {
+      "<!DOCTYPE html>",
+      "<html>",
+      "    <head>",
+      "        <META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">",
+      "        <meta content=\"text/html; charset=UTF-8\" http-equiv=\"content-type\"> </meta>",
+      "        <meta content=\"width=device-width, initial-scale=1\" name=\"viewport\"> </meta>",
+      "        <base target=\"_top\"> </base>",
+      "        <title>Index</title>",
+      "        <link href=\"wysiwiki/wysiwiki.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <script src=\"wysiwiki/index.js\"></script>",
+      "    </head>",
+      "    <body class=\"resource index\">",
+      "        <details open=\"true\">",
+      "            <summary id=\"/\">",
+      "                <a href=\"home.html\">home</a>",
+      "            </summary>",
+      "            <details>",
+      "                <summary id=\"/subdir\">",
+      "                    <a href=\"subdir.html\">subdir</a>",
+      "                </summary>",
+      "                <details>",
+      "                    <summary id=\"/subdir/subsubdir\">",
+      "                        subsubdir<a class=\"new-page\" href=\"subdir/subsubdir.html\">+</a>",
+      "                    </summary>",
+      "                    <div id=\"/subdir/subsubdir/grandchild\">",
+      "                        <a href=\"subdir/subsubdir/grandchild.html\">grandchild</a>",
+      "                    </div>",
+      "                </details>",
+      "                <div id=\"/subdir/child\">",
+      "                    <a href=\"subdir/child.html\">child</a>",
+      "                </div>",
+      "            </details>",
+      "        </details>",
+      "    </body>",
+      "</html>"
+    };
+    diff(startIndex, indexHtml);
+
+    assertFalse("Can't move home up by filename", manager.move("home.html", "up"));
+    diff(startIndex, indexHtml); // index unchanged
+    assertFalse("Can't move home down by filename", manager.move("home.html", "down"));
+    diff(startIndex, indexHtml); // index unchanged
+    assertFalse("Can't move only child up by filename", manager.move("subdir.html", "up"));
+    diff(startIndex, indexHtml); // index unchanged
+    assertFalse("Can't move only child down by filename", manager.move("subdir.html", "down"));
+    diff(startIndex, indexHtml); // index unchanged
+
+    assertFalse("Can't move home up by id", manager.move("/", "up"));
+    diff(startIndex, indexHtml); // index unchanged
+    assertFalse("Can't move home down by id", manager.move("/", "down"));
+    diff(startIndex, indexHtml); // index unchanged
+    assertFalse("Can't move only child up by id", manager.move("/subdir", "up"));
+    diff(startIndex, indexHtml); // index unchanged
+    assertFalse("Can't move only child down by id", manager.move("/subdir", "down"));
+    diff(startIndex, indexHtml); // index unchanged
+
+    String newPeer = "newPeer.html";
+    String newPeerId = "/newPeer";
+    manager.create(newPeer, new ByteArrayInputStream("newPeer".getBytes()));    
+
+    String[] peerBelow = {
+      "<!DOCTYPE html>",
+      "<html>",
+      "    <head>",
+      "        <META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">",
+      "        <meta content=\"text/html; charset=UTF-8\" http-equiv=\"content-type\"> </meta>",
+      "        <meta content=\"width=device-width, initial-scale=1\" name=\"viewport\"> </meta>",
+      "        <base target=\"_top\"> </base>",
+      "        <title>Index</title>",
+      "        <link href=\"wysiwiki/wysiwiki.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <script src=\"wysiwiki/index.js\"></script>",
+      "    </head>",
+      "    <body class=\"resource index\">",
+      "        <details open=\"true\">",
+      "            <summary id=\"/\">",
+      "                <a href=\"home.html\">home</a>",
+      "            </summary>",
+      "            <details>",
+      "                <summary id=\"/subdir\">",
+      "                    <a href=\"subdir.html\">subdir</a>",
+      "                </summary>",
+      "                <details>",
+      "                    <summary id=\"/subdir/subsubdir\">",
+      "                        subsubdir<a class=\"new-page\" href=\"subdir/subsubdir.html\">+</a>",
+      "                    </summary>",
+      "                    <div id=\"/subdir/subsubdir/grandchild\">",
+      "                        <a href=\"subdir/subsubdir/grandchild.html\">grandchild</a>",
+      "                    </div>",
+      "                </details>",
+      "                <div id=\"/subdir/child\">",
+      "                    <a href=\"subdir/child.html\">child</a>",
+      "                </div>",
+      "            </details>",
+      "            <div id=\"/newPeer\">",
+      "                <a href=\"newPeer.html\">newPeer</a>",
+      "            </div>",
+      "        </details>",
+      "    </body>",
+      "</html>"
+    };
+    diff(peerBelow, indexHtml);    
+
+    String[] peerAbove = {
+      "<!DOCTYPE html>",
+      "<html>",
+      "    <head>",
+      "        <META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">",
+      "        <meta content=\"text/html; charset=UTF-8\" http-equiv=\"content-type\"> </meta>",
+      "        <meta content=\"width=device-width, initial-scale=1\" name=\"viewport\"> </meta>",
+      "        <base target=\"_top\"> </base>",
+      "        <title>Index</title>",
+      "        <link href=\"wysiwiki/wysiwiki.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <link href=\"style.css\" rel=\"stylesheet\" type=\"text/css\"> </link>",
+      "        <script src=\"wysiwiki/index.js\"></script>",
+      "    </head>",
+      "    <body class=\"resource index\">",
+      "        <details open=\"true\">",
+      "            <summary id=\"/\">",
+      "                <a href=\"home.html\">home</a>",
+      "            </summary>",
+      "            <div id=\"/newPeer\">",
+      "                <a href=\"newPeer.html\">newPeer</a>",
+      "            </div>",
+      "            <details>",
+      "                <summary id=\"/subdir\">",
+      "                    <a href=\"subdir.html\">subdir</a>",
+      "                </summary>",
+      "                <details>",
+      "                    <summary id=\"/subdir/subsubdir\">",
+      "                        subsubdir<a class=\"new-page\" href=\"subdir/subsubdir.html\">+</a>",
+      "                    </summary>",
+      "                    <div id=\"/subdir/subsubdir/grandchild\">",
+      "                        <a href=\"subdir/subsubdir/grandchild.html\">grandchild</a>",
+      "                    </div>",
+      "                </details>",
+      "                <div id=\"/subdir/child\">",
+      "                    <a href=\"subdir/child.html\">child</a>",
+      "                </div>",
+      "            </details>",
+      "        </details>",
+      "    </body>",
+      "</html>"
+    };
+
+    assertTrue("Can move last peer up by filename", manager.move(newPeer, "up"));
+    diff(peerAbove, indexHtml); // index changed
+    assertFalse("Can't move first peer up by filename", manager.move(newPeer, "up"));
+    diff(peerAbove, indexHtml); // index unchanged
+
+    assertTrue("Can move first peer down by filename", manager.move(newPeer, "down"));
+    diff(peerBelow, indexHtml); // index changed
+    assertFalse("Can't move last peer down by filename", manager.move(newPeer, "down"));
+    diff(peerBelow, indexHtml); // index unchanged
+
+    assertTrue("Can move last peer up by id", manager.move(newPeerId, "up"));
+    diff(peerAbove, indexHtml); // index changed
+    assertFalse("Can't move first peer up by id", manager.move(newPeerId, "up"));
+    diff(peerAbove, indexHtml); // index unchanged
+
+    assertTrue("Can move first peer down by id", manager.move(newPeerId, "down"));
+    diff(peerBelow, indexHtml); // index changed
+    assertFalse("Can't move last peer down by id", manager.move(newPeerId, "down"));
+    diff(peerBelow, indexHtml); // index unchanged
+
+    manager.delete(newPeer); // be tidy
+    diff(startIndex, indexHtml);
+  }
+  
   /** Check for differences. */
   public void diff(String[] expectedContentArray, File file) throws Exception {
     List<String> expectedContent = Arrays.asList(expectedContentArray);

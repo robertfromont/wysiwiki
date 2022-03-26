@@ -190,8 +190,8 @@ public class ContentServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         return;
       }
-      String move = request.getParameter("move");
-      if (move == null) { // PUT full content                
+      String moveWhere = request.getParameter("move");
+      if (moveWhere == null) { // PUT full content                
         // back up the old version
         //TODO backup(html);
         try {
@@ -200,9 +200,13 @@ public class ContentServlet extends HttpServlet {
           content.create(request.getPathInfo(), request.getInputStream());
         }
         response.getWriter().write("OK");
-      } else { // move request - only edit the position in the index TODO
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        response.getWriter().write("Move not supported.");
+      } else { // move request - only edit the position in the index
+        boolean moved = content.move(request.getPathInfo(), moveWhere);
+        if (moved) {
+          response.getWriter().write("OK");
+        } else {
+          response.getWriter().write("Could not move " + request.getPathInfo() + " " + moveWhere);
+        }
       } // move request
       
     } catch (Exception x) {
