@@ -234,7 +234,9 @@ public class WebApp implements HttpHandler {
       } else {
         String moveWhere = null;
         String query = exchange.getRequestURI().getQuery();
-        if (query.startsWith("?move=")) moveWhere = query.substring("?move=".length());
+        if (query != null && query.startsWith("?move=")) {
+          moveWhere = query.substring("?move=".length());
+        }
         if (moveWhere == null) { // PUT full content                
           // back up the old version
           //TODO backup(html);
