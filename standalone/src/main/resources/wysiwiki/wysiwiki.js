@@ -1,9 +1,3 @@
-// ensure ckeditor is loaded
-var ckeditor5Script = document.createElement("script");
-ckeditor5Script.type = "text/javascript";
-ckeditor5Script.src = "https://cdn.ckeditor.com/ckeditor5/32.0.0/inline/ckeditor.js";
-document.head.appendChild(ckeditor5Script);
-
 let editable = false;
 let creating = false;
 let editButton = null;
@@ -412,6 +406,12 @@ window.addEventListener("load", function(e) {
         // can they update the page?
         if (oReq.getResponseHeader("Allow").includes("PUT")) {
             editable = true;
+
+            // ensure ckeditor is loaded
+            var ckeditor5Script = document.createElement("script");
+            ckeditor5Script.type = "text/javascript";
+            ckeditor5Script.src = "https://cdn.ckeditor.com/ckeditor5/32.0.0/inline/ckeditor.js";
+            document.head.appendChild(ckeditor5Script);
             
             // Add edit button
             editButton = document.createElement("button");
@@ -477,8 +477,10 @@ window.addEventListener("load", function(e) {
 }, false);
 
 // ensure they don't accidentally navigate away without saving
-window.addEventListener("beforeunload", function() {
-    if (articleEditor) {
+window.addEventListener("beforeunload", function(event) {
+    event.preventDefault();
+    if (articleEditor != null) {
         return "You have not saved your changes.";
     }
+    return null;
 });
