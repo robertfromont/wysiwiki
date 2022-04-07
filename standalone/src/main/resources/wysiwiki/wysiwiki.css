@@ -13,6 +13,9 @@ header, footer {
     margin: auto;
     width: 100%;
 }
+.hidden {
+    display: none;
+}
 .index details {
     padding-left: 10px;
 }

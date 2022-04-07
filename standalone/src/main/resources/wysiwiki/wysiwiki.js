@@ -187,7 +187,7 @@ function savePage() {
         const article = articleEditor.getData()
         // add newlines to make HTML source easier to diff (in case we're using git, etc.)
               .replace(/<h(\d)?/g,"\n<h$1") // no indent
-              .replace(/<(p|ul|ol|dl|div|figure)([ >])?/g,"\n <$1$2") // one space indent
+              .replace(/<(p|ul|ol|dl|div|figure|tr)([ >])?/g,"\n <$1$2") // one space indent
               .replace(/<(li|dt|dd|br)([ >])?/g,"\n  <$1$2");
         
         // insert the article content into it
@@ -201,7 +201,7 @@ function savePage() {
         oReq = new XMLHttpRequest();
         oReq.addEventListener("load", function(e) {
             // reload navigation
-            window.frames["nav"].location.reload();
+            window.nav.location.reload(true);
             // show buttons in index too, giving time for it to reload
             setTimeout(()=>{
                 window.nav.postMessage("editable", "*");
@@ -224,8 +224,8 @@ function savePage() {
             editButton.onclick = editPage;
             
             // show delete and post buttons
-            deleteButton.style = "display: inherit;";
-            postButton.style = "display: inherit;";
+            deleteButton.className = "";
+            postButton.className = "";
 
             creating = false;
         });
@@ -433,7 +433,7 @@ window.addEventListener("load", function(e) {
             deleteButton = document.createElement("button");
             deleteButton.id = "delete"
             if (creating) {
-                deleteButton.style = "display: none;";
+                deleteButton.className = "hidden";
             }
             deleteButton.innerHTML = deleteLabel;
             deleteButton.title = "Delete Page"
@@ -446,7 +446,7 @@ window.addEventListener("load", function(e) {
             postButton = document.createElement("button");
             postButton.id = "post"
             if (creating) {
-                postButton.style = "display: none;";
+                postButton.className = "hidden";
             }
             postButton.innerHTML = postLabel;
             postButton.title = "New post for the current date/time";
