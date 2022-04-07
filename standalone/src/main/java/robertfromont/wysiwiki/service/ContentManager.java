@@ -110,16 +110,15 @@ public class ContentManager {
     };
     for (String wysiwikiFile : wysiwikiFiles) {      
       Path file = wysiwiki.resolve(wysiwikiFile);
-      if (!Files.exists(file)) {
-        // unzip it from our own jar file
-        try {
-          URL url = getClass().getResource("/wysiwiki/"+wysiwikiFile);
-          Files.createDirectories(file.getParent());
-          Files.copy(url.openStream(), file);
-        } catch (Throwable t) {
-          System.err.println("Couldn't extract /wysiwiki/" + wysiwikiFile + " : " + t);
-        }
-      } // doesn't exist
+      // unzip it from our own jar file, regardless of whether it's already there
+      // so upgrades are automatic
+      try {
+        URL url = getClass().getResource("/wysiwiki/"+wysiwikiFile);
+        Files.createDirectories(file.getParent());
+        Files.copy(url.openStream(), file, StandardCopyOption.REPLACE_EXISTING);
+      } catch (Throwable t) {
+        System.err.println("Couldn't extract /wysiwiki/" + wysiwikiFile + " : " + t);
+      }
     } // next file
 
     // ensure customizable files are in place TODO
