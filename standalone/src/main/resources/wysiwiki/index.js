@@ -44,6 +44,9 @@ window.addEventListener("load", function(e) {
 window.addEventListener("resize", function(e) {
     reportDimensions();
 });
+window.addEventListener("load", function(e) {
+    reportDimensions();
+});
 window.addEventListener("message", function(e) {
     // message that was passed from iframe page
     const message = e.data;
@@ -126,3 +129,4 @@ function slugify(str) {
 
     return str;
 }
+
