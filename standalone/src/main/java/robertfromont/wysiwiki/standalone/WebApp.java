@@ -146,7 +146,7 @@ public class WebApp implements HttpHandler {
       get(exchange);
     } else if ("PUT".equals(exchange.getRequestMethod())) {
       put(exchange);
-    } else if ("PPOST".equals(exchange.getRequestMethod())) {
+    } else if ("POST".equals(exchange.getRequestMethod())) {
       post(exchange);
     } else if ("DELETE".equals(exchange.getRequestMethod())) {
       delete(exchange);
@@ -160,12 +160,39 @@ public class WebApp implements HttpHandler {
   /** Http GET */
   public void get(HttpExchange exchange) throws IOException {
     String urlPath = exchange.getRequestURI().getPath();
+    if (urlPath == null
+        || urlPath.equals("/")) { // root directory with no slash
+      exchange.getResponseHeaders().add("Location", "/home.html");
+      exchange.sendResponseHeaders(301, 0); // 301 = redirect
+      exchange.getResponseBody().close();
+      return;
+    }
+    if (urlPath.endsWith("/")) { // request ends with a slash
+      // redirect to the document representing the directory
+      exchange.getResponseHeaders().add(
+        "Location", urlPath.substring(0, urlPath.length()-1) + ".html");
+      exchange.sendResponseHeaders(301, 0); // 301 = redirect
+      exchange.getResponseBody().close();
+      return;
+    }
+    if (urlPath.indexOf(".") < 0) { // no dot, maybe a directory name?
+      Path relativePath = content.getRoot().getFileSystem().getPath(".", urlPath.split("/"));
+      Path path = content.getRoot().resolve(relativePath).normalize();
+      File realPath = path.toFile();
+      if (!realPath.exists() || realPath.isDirectory()) {
+        exchange.getResponseHeaders().add(
+          "Location", urlPath.substring(0, urlPath.length()-1) + ".html");
+        exchange.sendResponseHeaders(301, 0); // 301 = redirect
+        exchange.getResponseBody().close();
+        return;
+      }
+    }    
     InputStream contentStream = null;
     int responseCode = 200;
     try {
       contentStream = content.read(urlPath);
     } catch (FileNotFoundException notFound) {
-      responseCode = 404;;
+      responseCode = 404;
       if (urlPath.endsWith(".html")) {
         // return 404, but also a template for creating a new document
         
@@ -263,77 +290,82 @@ public class WebApp implements HttpHandler {
   
   /** Http POST */
   public void post(HttpExchange exchange) throws IOException {
-    exchange.getResponseHeaders().add("Content-Type", "text/plain;charset=UTF-8");
-    String urlPath = exchange.getRequestURI().getPath();
-    String body = "";
-    int responseCode = 200;
-    String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
-    if (contentType == null || contentType.startsWith("multipart/form-data; boundary=")) {
-      responseCode = 400;
-      body = "Wrong content type: " + contentType;
-    } else {
-      
-      Path rootPath = root.toPath();
-      Path relativePath = rootPath.getFileSystem().getPath(".", urlPath.split("/"));
-      Path path = rootPath.resolve(relativePath).normalize();
-      if (!path.startsWith(rootPath)) {
-        // can only access under root
-        responseCode = 403;
-        body = "Cannot access files outside root.";
+    try {
+      exchange.getResponseHeaders().add("Content-Type", "text/plain;charset=UTF-8");
+      String urlPath = exchange.getRequestURI().getPath();
+      String body = "";
+      int responseCode = 200;
+      String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+      if (contentType == null || !contentType.startsWith("multipart/form-data; boundary=")) {
+        responseCode = 400;
+        body = "Wrong content type: " + contentType;
       } else {
         
-        File file = null;
-        try {
-          // parse the parts out of the request
-          // take the first file we find
-          String boundary = contentType.substring("multipart/form-data; boundary=".length());
-          MultipartStream bodyParts = new MultipartStream(
-            exchange.getRequestBody(), boundary.getBytes(), 1024, null);
-          boolean nextPart = true;
-          nextPart = bodyParts.skipPreamble();
-          while (nextPart) {
-            String headers = bodyParts.readHeaders();
-            Matcher fileNameParser = Pattern.compile("filename=\"([^\"]+)\"").matcher(headers);
-            if (fileNameParser.find()) {
-              String fileName = fileNameParser.group(1);
-              file = path.toFile();
-              break;
-            }
-            nextPart = bodyParts.readBoundary();
-          } // next part
+        Path rootPath = root.toPath();
+        Path relativePath = rootPath.getFileSystem().getPath(".", urlPath.split("/"));
+        Path path = rootPath.resolve(relativePath).normalize();
+        if (!path.startsWith(rootPath)) {
+          // can only access under root
+          responseCode = 403;
+          body = "Cannot access files outside root.";
+        } else {
           
-          if (file == null) {
-            responseCode = 400;
-            body = "No file received.";
-          } else { // file found
+          File file = null;
+          try {
+            // parse the parts out of the request
+            // take the first file we find
+            String boundary = contentType.substring("multipart/form-data; boundary=".length());
+            MultipartStream bodyParts = new MultipartStream(
+              exchange.getRequestBody(), boundary.getBytes(), 1024, null);
+            boolean nextPart = true;
+            nextPart = bodyParts.skipPreamble();
+            while (nextPart) {
+              String headers = bodyParts.readHeaders();
+              Matcher fileNameParser = Pattern.compile("filename=\"([^\"]+)\"").matcher(headers);
+              if (fileNameParser.find()) {
+                String fileName = fileNameParser.group(1);
+                file = path.toFile();
+                break;
+              }
+              nextPart = bodyParts.readBoundary();
+            } // next part
             
-            if (!file.getParentFile().exists()) {
-              Files.createDirectories(file.getParentFile().toPath());
-            }
-            if (file.exists()) {
-              // get a non-existent file name
-              File dir = file.getParentFile();
-              String name = file.getName().replaceAll("\\.[^.]*$","");
-              String ext = file.getName().replaceAll(".*\\.([^.]*)$","$1");
-              int i = 0;
-              do {
-                file = new File(dir, name + "-" + (++i) + "." + ext);
-              } while(file.exists());
-            }
-            FileOutputStream output = new FileOutputStream(file);
-            bodyParts.readBodyData(output);
-            
-            body = "."+urlPath.replaceAll("[^/]+$", file.getName());
-          } // file found
-        } catch (Exception x) {
-          x.printStackTrace(System.err);
-          responseCode = 500;
-          body = x.getMessage();
-        }
-      } // path ok
-    } // content type ok
-    exchange.sendResponseHeaders(responseCode, body.length());
-    exchange.getResponseBody().write(body.getBytes());
+            if (file == null) {
+              responseCode = 400;
+              body = "No file received.";
+            } else { // file found
+              
+              if (!file.getParentFile().exists()) {
+                Files.createDirectories(file.getParentFile().toPath());
+              }
+              if (file.exists()) {
+                // get a non-existent file name
+                File dir = file.getParentFile();
+                String name = file.getName().replaceAll("\\.[^.]*$","");
+                String ext = file.getName().replaceAll(".*\\.([^.]*)$","$1");
+                int i = 0;
+                do {
+                  file = new File(dir, name + "-" + (++i) + "." + ext);
+                } while(file.exists());
+              }
+              FileOutputStream output = new FileOutputStream(file);
+              bodyParts.readBodyData(output);
+              
+              body = "."+urlPath.replaceAll("[^/]+$", file.getName());
+            } // file found
+          } catch (Exception x) {
+            x.printStackTrace(System.err);
+            responseCode = 500;
+            body = x.getMessage();
+          }
+        } // path ok
+      } // content type ok
+      exchange.sendResponseHeaders(responseCode, body.length());
+      exchange.getResponseBody().write(body.getBytes());
+    } catch (Throwable t) {
+      t.printStackTrace(System.err);
+      throw t;
+    }
   }
   
   /** Http DELETE */
