@@ -479,8 +479,7 @@ window.addEventListener("load", function(e) {
 // ensure they don't accidentally navigate away without saving
 window.addEventListener("beforeunload", function(event) {
     event.preventDefault();
-    if (articleEditor != null) {
+    if (articleEditor) {
         return "You have not saved your changes.";
     }
-    return null;
 });

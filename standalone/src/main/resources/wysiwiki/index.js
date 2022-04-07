@@ -40,6 +40,13 @@ window.addEventListener("load", function(e) {
             item.classList.add("current");
         } // the page exists
     }
+
+    // when directories are expanded/contracted, we report our dimensions
+    for (let details of document.getElementsByTagName("details")) {
+        details.addEventListener("toggle", function(event) {            
+            reportDimensions();
+        });
+    }
 }, false);
 window.addEventListener("resize", function(e) {
     reportDimensions();
