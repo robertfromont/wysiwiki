@@ -467,7 +467,11 @@ window.addEventListener("load", function(e) {
             aside.appendChild(loginButton);
         }
         
-        if (creating) editPage();
+        if (creating) {
+            window.setTimeout( () => {
+                editPage();
+            }, 2000); // wait a couple of seconds to allow ckeditor5Script to load
+        }
     }); // load OPTIONS request content
     oReq.addEventListener("error", function(r) {
         alert(`${r.status}: ${r.statusText}\n${r.responseText}`);
