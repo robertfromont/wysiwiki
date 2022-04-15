@@ -392,7 +392,7 @@ window.addEventListener("message", function(e) {
         }
         if (editable) { // maybe we already know if the index is editable
             // let index know it can add buttons
-            window.top.postMessage("editable", "*");
+            window.nav.postMessage("editable", "*");
         }
     }
 }, false);

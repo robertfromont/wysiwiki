@@ -2,8 +2,12 @@ const baseURL = document.baseURI.replace(/\/index\.html$/,"");
 let currentId = null;
 let peerButton = null;
 let childButton = null;
+let moveUpButton = null;
+let moveDownButton = null;
 const newPeerLabel = "＋";
 const newChildLabel = "＋";
+const moveUpLabel = "▲";
+const moveDownLabel = "▼";
 
 function reportDimensions() {
     let message = {
@@ -40,18 +44,9 @@ window.addEventListener("load", function(e) {
             item.classList.add("current");
         } // the page exists
     }
-
-    // when directories are expanded/contracted, we report our dimensions
-    for (let details of document.getElementsByTagName("details")) {
-        details.addEventListener("toggle", function(event) {            
-            reportDimensions();
-        });
-    }
+    reportDimensions();
 }, false);
 window.addEventListener("resize", function(e) {
-    reportDimensions();
-});
-window.addEventListener("load", function(e) {
     reportDimensions();
 });
 window.addEventListener("message", function(e) {
@@ -64,6 +59,8 @@ function addButtons() {
     let item = document.getElementById(currentId);
     if (item) { // the page exists
 
+        let somethingChanged = false;
+        
         if (!peerButton) {
             // Create peer page button
             peerButton = document.createElement("button");
@@ -79,6 +76,7 @@ function addButtons() {
             } else { // directory
                 item.parentElement.parentElement.appendChild(peerButton);
             }
+            somethingChanged = true;
         }
         
         if (currentId != "/" && !childButton) {
@@ -95,10 +93,50 @@ function addButtons() {
             } else { // directory
                 item.parentElement.appendChild(childButton);
             }
+            somethingChanged = true;
+        }
+
+        if (!moveUpButton) {
+            let elementToMove = item;
+            if (item.tagName != "DIV") { // plain page
+                elementToMove = item.parentElement;
+            }
+            if (elementToMove.previousElementSibling
+                && elementToMove.previousElementSibling.tagName != "SUMMARY") {
+                // Create move up button
+                moveUpButton = document.createElement("button");
+                moveUpButton.id = "moveUp"
+                moveUpButton.innerHTML = moveUpLabel;
+                moveUpButton.title = "Move page up";
+                moveUpButton.onclick = function() {
+                    movePage(item.id, "up", elementToMove);
+                };
+                item.appendChild(moveUpButton);
+                somethingChanged = true;
+            }
+        }
+        if (!moveDownButton) {
+            let elementToMove = item;
+            if (item.tagName != "DIV") { // plain page
+                elementToMove = item.parentElement;
+            }
+            if (elementToMove.nextElementSibling
+                && elementToMove.nextElementSibling.tagName != "BUTTON") {
+                // Create move down button
+                moveDownButton = document.createElement("button");
+                moveDownButton.id = "moveDown"
+                moveDownButton.innerHTML = moveDownLabel;
+                moveDownButton.title = "Move page down";
+                moveDownButton.onclick = function() {
+                    movePage(item.id, "down", elementToMove);
+                };
+                item.appendChild(moveDownButton);
+                somethingChanged = true;
+            }
         }
 
         // our size may have changed
-        reportDimensions();
+        if (somethingChanged) reportDimensions();
     } // the page exists
 }
 
@@ -110,6 +148,22 @@ function newPage(parentId) {
         if (title+".html" != documentName) url += `#${title}`;
         window.top.location = url;
     }
+}
+
+function movePage(id, direction, elementToMove) {
+    const xhr = new XMLHttpRequest();
+    xhr.addEventListener("load", function(e) {
+        if (this.responseText == "OK") {
+            // we could rearrange the DOM, but the cache would load an old version later
+            // so reload the index
+            document.location.reload(true);
+        }
+    });
+    xhr.addEventListener("error", function(r) {
+        console.error(`${r.status}: ${r.statusText}\n${r.responseText}`);
+    });
+    xhr.open("PUT", `${baseURL}${id}.html?move=${direction}`);
+    xhr.send()
 }
 
 // Slugify a string
@@ -136,4 +190,3 @@ function slugify(str) {
 
     return str;
 }
-
