@@ -145,7 +145,7 @@ public class Upgrade extends HttpServlet {
               while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
                 
-                // don't replace possibly customized config files, which might have been customized
+                // don't replace possibly customized config files
                 if ("WEB-INF/web.xml".equals(entry.getName())) continue;
                 if (entry.getName().startsWith("META-INF/")) continue;
                 

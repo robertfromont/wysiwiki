@@ -36,6 +36,7 @@
       <web-resource-name>WysiWiki</web-resource-name>
       <url-pattern>/*</url-pattern>
     </web-resource-collection>
+    <!-- Un-comment the following line to make all pages password-protected: -->
     <!--auth-constraint><role-name>read</role-name></auth-constraint-->
   </security-constraint>
   <login-config>
