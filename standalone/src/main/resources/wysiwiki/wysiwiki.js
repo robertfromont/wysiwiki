@@ -224,7 +224,7 @@ function savePage() {
             creating = false;
         });
         oReq.addEventListener("error", function(r) {
-            alert(`${r.status}: ${r.statusText}\n${r.responseText}`);
+            console.error(`${r.status}: ${r.statusText}\n${r.responseText}`);
         });
         oReq.open("PUT", document.URL);
         oReq.setRequestHeader("Content-Type", "text/html");
@@ -247,7 +247,7 @@ function deletePage() {
             window.location.href = new URL(".", document.URL);
         });
         oReq.addEventListener("error", function(r) {
-            alert(`${r.status}: ${r.statusText}\n${r.responseText}`);
+            console.error(`${r.status}: ${r.statusText}\n${r.responseText}`);
         });
         oReq.open("DELETE", document.URL);
         oReq.setRequestHeader("Content-Type", "text/html");
@@ -474,7 +474,7 @@ window.addEventListener("load", function(e) {
         }
     }); // load OPTIONS request content
     oReq.addEventListener("error", function(r) {
-        alert(`${r.status}: ${r.statusText}\n${r.responseText}`);
+        console.error(`${r.status}: ${r.statusText}\n${r.responseText}`);
     });
     oReq.open("OPTIONS", document.URL);
     oReq.send();
