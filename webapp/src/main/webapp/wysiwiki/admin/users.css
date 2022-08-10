@@ -1,0 +1,31 @@
+.username {
+    font-weight: bold;
+}
+td {
+    white-space: nowrap;
+}
+td input:not([type=checkbox]) {
+    width: 90%;
+}
+td.password div {
+    display: flex;
+}
+button[disabled] {
+    opacity: 0.5;
+}
+
+@keyframes sidle-fade {
+    0%   { opacity: 0; left: 10%; }
+    10%  { opacity: 1; left: 0%; }
+    75%  { opacity: 1; left: 0%; }
+    100% { opacity: 0; left: -10%; }
+}
+#message span {
+    position: relative;
+    animation-name: sidle-fade;
+    animation-duration: 5s;
+    opacity: 0;
+}
+.error {
+    color: red;
+}

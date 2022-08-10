@@ -278,7 +278,8 @@ public class ContentServlet extends HttpServlet {
           }
           fileItem.write(file);
 
-          response.getWriter().write("."+request.getPathInfo().replaceAll("[^/]+$", file.getName()));          
+          response.getWriter().write(
+            "."+request.getPathInfo().replaceAll("[^/]+$", file.getName()));
         } // file found
       } // file being uploaded
     } catch (Exception x) {

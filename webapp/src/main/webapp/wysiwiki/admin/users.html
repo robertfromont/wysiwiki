@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Users</title>
+    <base href="../..">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="wysiwiki/wysiwiki.css" type="text/css" />
+    <link rel="stylesheet" href="wysiwiki/admin/users.css" type="text/css" />
+    <link rel="stylesheet" href="style.css" type="text/css" />    
+    <script src="wysiwiki/admin/users.js"></script>
+  </head>
+  <body>
+    <header><iframe src="header.html"></iframe></header>
+    <div id="main">
+      <aside></aside>
+      <article>
+        <table>
+          <caption id="message">&nbsp;</caption>
+          <thead><tr>
+              <td class="username">
+                <input id="username" type="text" placeholder="Username"></td>
+              <td class="password">
+                <input id="password" type="password" placeholder="Password"></td>
+              <td class="role-read">
+                <label title="User can see pages">
+                  <input id="read" type="checkbox" checked> Read </label></td>
+              <td class="role-write">
+                <label title="User can update pages">
+                  <input id="write" type="checkbox" checked> Write </label></td>
+              <td class="role-admin">
+                <label title="User can add/remove users, install upgrades, etc.">
+                  <input id="admin" type="checkbox"> Admin </label></td>
+              <td><button id="createUser">➕</button></td>
+              </td>
+          </tr></thead>
+          <tbody id="users"></tbody>
+        </table>
+      </article>
+      <nav>
+        <iframe src="index.html" id="nav" name="nav"></iframe>
+      </nav>
+    </div>
+    <footer><iframe src="footer.html"></iframe></footer>
+  </body>
+</html>
