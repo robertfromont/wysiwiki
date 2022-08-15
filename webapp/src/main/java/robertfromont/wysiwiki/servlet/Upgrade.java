@@ -68,7 +68,7 @@ public class Upgrade extends HttpServlet {
         
     // WAR file
     writer.println("   <tr title=\"The new version of the web application archive (.war file)\">");
-    writer.println("    <td><label for=\"war\">digit-triplets-test.war file</label></td>");
+    writer.println("    <td><label for=\"war\">wysiwiki.war file</label></td>");
     writer.println("    <td><input id=\"war\" name=\"war\" type=\"file\""
                    +" onchange=\"if (!this.files[0].name.match('\\.war$'))"
                    +" { alert('Please choose a .war file'); this.value = null; }\""
