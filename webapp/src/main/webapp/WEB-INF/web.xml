@@ -4,8 +4,8 @@
 
 <web-app>
   <display-name>Wysiwiki</display-name>
-  <security-role><role-name>view</role-name></security-role> 
-  <security-role><role-name>author</role-name></security-role> 
+  <security-role><role-name>read</role-name></security-role> 
+  <security-role><role-name>write</role-name></security-role> 
   <security-role><role-name>admin</role-name></security-role> 
   <security-constraint>
     <web-resource-collection>
