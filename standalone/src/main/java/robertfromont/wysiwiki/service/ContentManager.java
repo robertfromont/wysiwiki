@@ -164,7 +164,6 @@ public class ContentManager {
       transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
       transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
       transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-
     } catch (Exception x) {
       System.err.println("ContentManager: " + x);
     }
