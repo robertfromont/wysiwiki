@@ -462,13 +462,13 @@ public class TestContentManager {
     assertEquals("New title in index", "update", item.getTextContent());
 
     // can be updated again
-    manager.update(path, new ByteArrayInputStream("<title>update 2</title>".getBytes()));
+    manager.update(path, new ByteArrayInputStream("<title>úpdate 2</title>".getBytes()));
 
     // check it was updated<title>create</title>
     r = new BufferedReader(new InputStreamReader(
                              manager.read(path), "UTF-8"));
     try {
-      assertEquals("Updated to correct content", "<title>update 2</title>", r.readLine());
+      assertEquals("Updated to correct content", "<title>úpdate 2</title>", r.readLine());
     } finally {
       r.close();
     }
@@ -513,7 +513,7 @@ public class TestContentManager {
         "                    test<a class=\"new-page\" href=\"test.html\">+</a>",
         "                </summary>",
         "                <div id=\"/test/test\">",
-        "                    <a href=\"test/test.html\">update 2</a>",
+        "                    <a href=\"test/test.html\">&uacute;pdate 2</a>",
         "                </div>",
         "            </details>",
         "        </details>",
@@ -525,7 +525,7 @@ public class TestContentManager {
     item = (Element)xpath.evaluate(
       "//*[@id='/test/test']", manager.index, XPathConstants.NODE);
     assertNotNull("File still indexed", item);
-    assertEquals("New title in index", "update 2", item.getTextContent());
+    assertEquals("New title in index", "úpdate 2", item.getTextContent());
 
     // convert into a directory
     assertEquals("Index item is div before adding child", "div", item.getTagName());
@@ -572,7 +572,7 @@ public class TestContentManager {
         "                </summary>",
         "                <details>",
         "                    <summary id=\"/test/test\">",
-        "                        <a href=\"test/test.html\">update 2</a>",
+        "                        <a href=\"test/test.html\">&uacute;pdate 2</a>",
         "                    </summary>",
         "                    <div id=\"/test/test/test\">",
         "                        <a href=\"test/test/test.html\">test</a>",
@@ -633,7 +633,7 @@ public class TestContentManager {
         "                </summary>",
         "                <details>",
         "                    <summary id=\"/test/test\">",
-        "                        <a href=\"test/test.html\">update 2</a>",
+        "                        <a href=\"test/test.html\">&uacute;pdate 2</a>",
         "                    </summary>",
         "                    <div id=\"/test/test/test\">",
         "                        <a href=\"test/test/test.html\">test</a>",

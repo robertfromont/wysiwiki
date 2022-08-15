@@ -164,6 +164,7 @@ public class ContentManager {
       transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
       transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
       transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+
     } catch (Exception x) {
       System.err.println("ContentManager: " + x);
     }
@@ -188,7 +189,12 @@ public class ContentManager {
     String meta = "<META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">";
     while (line != null) {
       if (!line.trim().equals(meta)) {
-        html.append(line);
+        html.append(
+          // annoyingly, the Transformer converts non-ASCII characters like é
+          // into HTML entities like &eacute; which can't be then parsed as plain XML
+          // so we eliminate them before they're parsed
+          org.apache.commons.text.StringEscapeUtils.unescapeHtml4​(
+            line));
       }
       line = htmlReader.readLine();
     } // next line
@@ -278,8 +284,10 @@ public class ContentManager {
     indexWriter.println("<!DOCTYPE html>");
     StreamResult result =  new StreamResult(indexWriter);
     Transformer xmlTransformer = transformerFactory.newTransformer();
+    xmlTransformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     xmlTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
     xmlTransformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+    xmlTransformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
     xmlTransformer.transform(source, result);
     indexWriter.close();
   } // end of writeIndex()
