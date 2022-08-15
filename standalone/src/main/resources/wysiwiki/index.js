@@ -44,6 +44,15 @@ window.addEventListener("load", function(e) {
             item.classList.add("current");
         } // the page exists
     }
+    // resize when details expanded
+    const collection = document.getElementsByTagName("details");
+    for (let i = 0; i < collection.length; i++) {
+        collection[i].addEventListener('click', e => {
+            setTimeout(()=>{
+                reportDimensions();
+            }, 100);
+        });
+    }
     reportDimensions();
 }, false);
 window.addEventListener("resize", function(e) {
