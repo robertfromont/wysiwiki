@@ -1,0 +1,8 @@
+# node
+/node
+
+# dependencies
+/node_modules
+
+# built files
+/dist

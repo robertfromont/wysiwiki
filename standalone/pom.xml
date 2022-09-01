@@ -51,6 +51,54 @@
     </resources-->
     <plugins>
       <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.12.1</version>
+
+        <configuration>
+          <nodeVersion>v8.11.1</nodeVersion>
+          <npmVersion>5.6.0</npmVersion>
+          <workingDirectory>src/main/javascript</workingDirectory>
+        </configuration>
+        
+        <executions>
+          <execution>
+            <id>install node and npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <!-- See https://nodejs.org/en/download/ for latest node and npm (lts) versions -->
+              <nodeVersion>v16.17.0</nodeVersion>
+              <npmVersion>8.15.0</npmVersion>
+            </configuration>
+          </execution>
+          
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <!-- Optional configuration which provides for running any npm command -->
+            <configuration>
+              <arguments>install</arguments>
+            </configuration>
+          </execution>
+          
+          <execution>
+            <id>webpack-build</id>
+            <goals><goal>webpack</goal></goals>
+            <configuration>
+              <!-- optional: if not specified, it will run webpack's default
+                   build (and you can remove this whole <configuration> section.) -->
+              <!--arguments>--mode development</arguments-->
+              <arguments>--mode production</arguments>
+            </configuration>
+          </execution>
+        </executions>
+        
+      </plugin>
+      <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.0.2</version>
         <configuration>
