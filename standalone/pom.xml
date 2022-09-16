@@ -5,12 +5,12 @@
   <parent>
     <groupId>robertfromont.wysiwiki</groupId>
     <artifactId>wysiwiki</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
   </parent>
 
   <groupId>robert.wysiwiki</groupId>
   <artifactId>wysiwiki-standalone</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <name>wysiwiki-standalone</name>
   <url>https://github.com/robertfromont/wysiwiki</url>
   <description> A very simple standalone site management system with static content. </description>
@@ -56,8 +56,9 @@
         <version>1.12.1</version>
 
         <configuration>
-          <nodeVersion>v8.11.1</nodeVersion>
-          <npmVersion>5.6.0</npmVersion>
+          <!-- See https://nodejs.org/en/download/ for latest node and npm (lts) versions -->
+          <nodeVersion>v16.17.0</nodeVersion>
+          <npmVersion>8.15.0</npmVersion>
           <workingDirectory>src/main/javascript</workingDirectory>
         </configuration>
         
@@ -67,11 +68,6 @@
             <goals>
               <goal>install-node-and-npm</goal>
             </goals>
-            <configuration>
-              <!-- See https://nodejs.org/en/download/ for latest node and npm (lts) versions -->
-              <nodeVersion>v16.17.0</nodeVersion>
-              <npmVersion>8.15.0</npmVersion>
-            </configuration>
           </execution>
           
           <execution>
@@ -91,7 +87,7 @@
             <configuration>
               <!-- optional: if not specified, it will run webpack's default
                    build (and you can remove this whole <configuration> section.) -->
-              <!--arguments>--mode development</arguments-->
+              <!--arguments>- -mode development</arguments-->
               <arguments>--mode production</arguments>
             </configuration>
           </execution>

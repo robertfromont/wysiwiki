@@ -295,6 +295,10 @@ function savePage() {
             // show buttons in index too, giving time for it to reload
             setTimeout(()=>{
                 window.nav.postMessage("editable", "*");
+                
+                // ensure the article content is what was saved
+                console.log("Setting article to " + article);
+                document.querySelector("#main>article").innerHTML = article;
             }, 1500);
             
             // TODO if (creating) {
