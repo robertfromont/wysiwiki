@@ -208,48 +208,57 @@ class WysiwikiUploadAdapter {
 }
 
 function editPage() {
-    if (creating) {
-        // add some default content
-        let title = decodeURI(document.URL) // file name by default
-            .replace(/.*\//, "")
-            .replace(/\.html$/, "");
-        // if there's a hash, assume it's intended to be the title
-        if (document.location.hash && document.location.hash != "#") {
-            title = decodeURI( // Convert %20 to space, etc.
-                document.location.hash
-                    .replace(/^#/,"")); // remove initial #            
+    if (articleEditor) {
+        articleEditor.disableReadOnlyMode('wysiwiki');
+        editingEnabled();
+    } else { // not already created
+        if (creating) {
+            // add some default content
+            let title = decodeURI(document.URL) // file name by default
+                .replace(/.*\//, "")
+                .replace(/\.html$/, "");
+            // if there's a hash, assume it's intended to be the title
+            if (document.location.hash && document.location.hash != "#") {
+                title = decodeURI( // Convert %20 to space, etc.
+                    document.location.hash
+                        .replace(/^#/,"")); // remove initial #            
+            }
+            
+            document.querySelector("#main>article").innerHTML
+                = `<h2>${title}</h2><p></p>`;
+            document.querySelector("title").innerText = title;
         }
-
-        document.querySelector("#main>article").innerHTML
-            = `<h2>${title}</h2><p></p>`;
-        document.querySelector("title").innerText = title;
-    }
-    InlineEditor.create(document.querySelector("#main>article"), {
-        //toolbar:
-        link: {
-            // Automatically add target="_blank" and rel="noopener noreferrer" to all external links.
-            addTargetToExternalLinks: true,            
-        //    // Let the users control the "download" attribute of each link.
-        //    decorators: [{mode: 'manual', label: 'Downloadable', attributes: {download: 'download'}}]
-        }
-    }).catch( error => {
-        console.error( error );
-    }).then((editor) => {
-        editor.plugins.get( 'FileRepository' ).createUploadAdapter = ( loader ) => {
-            return new WysiwikiUploadAdapter( loader );
-        };        
-        editButton.innerHTML = creating?createLabel:saveLabel;
-        editButton.title = creating?"Create Page":"Save Page";
-        editButton.onclick = savePage;
-        // ensure the user can start typing immediately
-        editor.focus();
-        // put cursor at the end
-        editor.model.change( writer => {
-            writer.setSelection(
-                writer.createPositionAt(
-                    editor.model.document.getRoot(), 'end' ) );
+        InlineEditor.create(document.querySelector("#main>article"), {
+            //toolbar:
+            link: {
+                // Automatically add target="_blank" and rel="noopener noreferrer" to all external links.
+                addTargetToExternalLinks: true,            
+                //    // Let the users control the "download" attribute of each link.
+                //    decorators: [{mode: 'manual', label: 'Downloadable', attributes: {download: 'download'}}]
+            }
+        }).catch( error => {
+            console.error( error );
+        }).then((editor) => {
+            editor.plugins.get( 'FileRepository' ).createUploadAdapter = ( loader ) => {
+                return new WysiwikiUploadAdapter( loader );
+            };        
+            articleEditor = editor;
+            editingEnabled();
         });
-        articleEditor = editor;
+    } // not already created
+}
+
+function editingEnabled() {
+    editButton.innerHTML = creating?createLabel:saveLabel;
+    editButton.title = creating?"Create Page":"Save Page";
+    editButton.onclick = savePage;
+    // ensure the user can start typing immediately
+    articleEditor.focus();
+    // put cursor at the end
+    articleEditor.model.change( writer => {
+        writer.setSelection(
+            writer.createPositionAt(
+                articleEditor.model.document.getRoot(), 'end' ) );
     });
 }
 
@@ -295,24 +304,13 @@ function savePage() {
             // show buttons in index too, giving time for it to reload
             setTimeout(()=>{
                 window.nav.postMessage("editable", "*");
-                
-                // ensure the article content is what was saved
-                console.log("Setting article to " + article);
-                document.querySelector("#main>article").innerHTML = article;
             }, 1500);
             
-            // TODO if (creating) {
-            //     alert("Created");
-            //     loadNavigation();
-            // } else {
-            //     alert("Saved");
-            // }
             // set the title locally
             document.querySelector("title").innerText = title;
             
             // stop editing
-            articleEditor.destroy();
-            articleEditor = null;            
+            articleEditor.enableReadOnlyMode('wysiwiki');
             editButton.innerHTML = editLabel;
             editButton.title = "Edit Page";
             editButton.onclick = editPage;
@@ -576,7 +574,7 @@ window.addEventListener("load", function(e) {
 
 // ensure they don't accidentally navigate away without saving
 window.addEventListener("beforeunload", function(event) {
-    if (articleEditor) {
+    if (articleEditor && !articleEditor.isReadOnly) {
         event.preventDefault();
         return "You have not saved your changes.";
     }
