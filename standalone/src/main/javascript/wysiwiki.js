@@ -74,6 +74,9 @@ InlineEditor.defaultConfig = {
 	]
     },
     image: {
+        upload: {
+	    types: [ 'jpeg', 'png', 'gif', 'bmp', 'svg+xml' ]
+        },
 	toolbar: [
 	    'imageStyle:inline',
 	    'imageStyle:block',
