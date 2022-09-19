@@ -233,11 +233,17 @@ function editPage() {
             if (document.location.hash && document.location.hash != "#") {
                 title = decodeURI( // Convert %20 to space, etc.
                     document.location.hash
-                        .replace(/^#/,"")); // remove initial #            
+                        .replace(/^#/,"")); // remove initial #
             }
-            
-            document.querySelector("#main>article").innerHTML
-                = `<h2>${title}</h2><p></p>`;
+
+            if (/\t/.test(title)) { // title with subtitle
+                const titles = title.split("\t");
+                document.querySelector("#main>article").innerHTML
+                    = `<h2>${titles[0]}</h2><h3>${titles[1]}</h3><p></p>`;
+            } else {
+                document.querySelector("#main>article").innerHTML
+                    = `<h2>${title}</h2><p></p>`;
+            }
             document.querySelector("title").innerText = title;
         }
         InlineEditor.create(document.querySelector("#main>article"), {
@@ -451,10 +457,17 @@ function newPost() {
         postPath = now.toISOString().replace(/-/g,"/").substring(0,10)
             + "-" + slugify(title)
             + ".html";
-    } else {
-        const timeWithoutSeconds = now.toTimeString().replace(/:[^:]*$/,"");
-        title = `${dateParts[0]} ${dateParts[2]}, ${timeWithoutSeconds}`; // "Mon 28, 13:12"
     }
+    
+    const timeWithoutSeconds = now.toTimeString().replace(/:[^:]*$/,"");
+    if (title) { // append timestamp, delimited by tab %09
+         // "Mon 28 Feb 2022, 13:12" 
+        title += `%09${dateParts[0]} ${dateParts[2]} ${dateParts[1]}  ${dateParts[3]}, ${timeWithoutSeconds}`;
+    } else { // use timestamp as title
+        // "Mon 28, 13:12" - short version because it appears in the index, long titles are annoying
+        title = `${dateParts[0]} ${dateParts[2]}, ${timeWithoutSeconds}`; 
+    }
+    
     let url = `${postParent}/${postPath}`;
     if (title) {
         url += `#${title}`;
