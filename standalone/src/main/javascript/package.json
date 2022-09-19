@@ -21,6 +21,7 @@
     "@ckeditor/ckeditor5-editor-inline": "^35.1.0",
     "@ckeditor/ckeditor5-essentials": "^35.1.0",
     "@ckeditor/ckeditor5-heading": "^35.1.0",
+    "@ckeditor/ckeditor5-horizontal-line": "^35.1.0",
     "@ckeditor/ckeditor5-image": "^35.1.0",
     "@ckeditor/ckeditor5-indent": "^35.1.0",
     "@ckeditor/ckeditor5-link": "^35.1.0",
