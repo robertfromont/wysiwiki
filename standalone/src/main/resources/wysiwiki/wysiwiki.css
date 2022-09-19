@@ -20,7 +20,8 @@ header, footer {
     padding-left: 10px;
 }
 .index div {
-    padding-left: 25px;
+    padding-left: 35px;
+    text-indent: -15px;
 }
 .index span {
     float: right;
@@ -102,4 +103,20 @@ nav iframe {
 
 figure img {
     max-width: 100%;
+}
+
+figure.image-style-side {
+    float: right;
+    margin-left: 10px;
+    max-width: 50%;
+}
+figure.image-inline {
+    position: relative;
+}
+figure.image {
+    display: table;
+    clear: both;
+    text-align: center;
+    margin: .9em auto;
+    min-width: 50px;
 }
