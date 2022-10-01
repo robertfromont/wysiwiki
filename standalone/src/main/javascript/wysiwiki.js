@@ -27,6 +27,7 @@ import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
 import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import Video from './video/video';
+import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
 
 InlineEditor.builtinPlugins = [
     Essentials,
@@ -56,7 +57,8 @@ InlineEditor.builtinPlugins = [
     Table,
     TableToolbar,
     TextTransformation,
-    Video
+    Video,
+    Alignment
 ];
 // Editor configuration.
 InlineEditor.defaultConfig = {
@@ -71,6 +73,7 @@ InlineEditor.defaultConfig = {
 	    'link',
 	    'bulletedList',
 	    'numberedList',
+            'alignment',
             'horizontalLine',
 	    '|',
 	    'outdent',
@@ -109,6 +112,9 @@ InlineEditor.defaultConfig = {
 	    'tableRow',
 	    'mergeTableCells'
 	]
+    },
+    alignment: {
+        options: [ 'left', 'center', 'right' ]
     },
     // This value must be kept in sync with the language defined in webpack.config.js.
     language: 'en'
