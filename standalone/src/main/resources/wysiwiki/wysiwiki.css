@@ -121,3 +121,10 @@ figure.image {
     margin: .9em auto;
     min-width: 50px;
 }
+figure.video > video {
+    width: 100%;
+    max-width: 1000px;
+}
+figure.video {
+  text-align: center;
+}
