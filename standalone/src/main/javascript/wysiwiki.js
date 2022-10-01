@@ -98,6 +98,11 @@ InlineEditor.defaultConfig = {
 	    'imageTextAlternative'
 	]
     },
+    video: {
+        upload: {
+	    types: [ 'mp4', 'webm' ]
+        },
+    },
     table: {
 	contentToolbar: [
 	    'tableColumn',
