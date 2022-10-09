@@ -43,4 +43,10 @@
     <auth-method>BASIC</auth-method>
     <realm-name>WysiWiki</realm-name>
   </login-config>
+  <session-config>
+    <!-- session timeout after a week
+         i.e. if they connect at least once a week,
+         they don't have to enter their password -->
+    <!--session-timeout>10080</session-timeout-->
+  </session-config>
 </web-app>
