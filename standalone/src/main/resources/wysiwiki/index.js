@@ -1,4 +1,4 @@
-const baseURL = document.baseURI.replace(/\/index\.html$/,"");
+const baseURL = document.baseURI.replace(/\/index\.html(#.*)?$/,"");
 let currentId = null;
 let peerButton = null;
 let childButton = null;
@@ -8,7 +8,6 @@ const newPeerLabel = "＋";
 const newChildLabel = "＋";
 const moveUpLabel = "▲";
 const moveDownLabel = "▼";
-
 function reportDimensions() {
     let message = {
         resource: document.URL.replace(/.*\//,""),
@@ -20,8 +19,12 @@ function reportDimensions() {
     window.top.postMessage(message, "*");
 }
 
-window.addEventListener("load", function(e) {
-    const currentUrl = document.referrer;
+function expandMenu(e) {
+    let currentUrl = document.referrer;
+    if (!currentUrl && window.location.hash) {
+        // loading from file:// URLs prevents document.referrer, so use hash instead
+        currentUrl = window.location.hash.replace(/^#/,"");
+    }
     if (currentUrl) {
         currentId = currentUrl.substring(baseURL.length)
               .replace(/\.html$/,"");
@@ -35,7 +38,9 @@ window.addEventListener("load", function(e) {
             if (details) {
                 details.parentElement.setAttribute("open", true);
             }
-            expandId = expandId.replace(/\/[^\/]*$/,"");
+            const nextExpandId = expandId.replace(/\/[^\/]*$/,"");
+            if (nextExpandId == expandId) break; // something went wrong, give up
+            expandId = nextExpandId;
             details = document.getElementById(expandId);
         } // next ancestor in the tree
 
@@ -54,7 +59,10 @@ window.addEventListener("load", function(e) {
         });
     }
     reportDimensions();
-}, false);
+}
+window.addEventListener("load", expandMenu, false);
+window.addEventListener("hashchange", expandMenu, false);
+
 window.addEventListener("resize", function(e) {
     reportDimensions();
 });

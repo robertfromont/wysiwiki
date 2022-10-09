@@ -534,6 +534,11 @@ window.addEventListener("message", function(e) {
 }, false);
 
 window.addEventListener("load", function(e) {
+    if (/^file:/.test(window.location.href)) { // loading from file:// URL
+        // ensure index can know the URL of its parent, for menu expansion
+        document.getElementById("nav").src += `#${window.location.href}`;
+    }
+    
     // determine whether they can update the page by makeing an OPTIONS request
     let oReq = new XMLHttpRequest();
     oReq.addEventListener("load", function(e) {
