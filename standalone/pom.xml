@@ -136,6 +136,18 @@
                   <version>2.2</version>
                   <outputDirectory>${project.build.directory}/classes</outputDirectory>
                 </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-text</artifactId>
+                  <version>1.9</version>
+                  <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.commons</groupId>
+                  <artifactId>commons-lang3</artifactId>
+                  <version>3.11</version>
+                  <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
