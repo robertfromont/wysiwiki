@@ -31,7 +31,9 @@ export default class InsertVideoCommand extends Command {
 	    return;
 	}
 
+        document.getElementsByTagName("article")[0].style.cursor = "wait"; 
         loader.upload().then( data => {
+            document.getElementsByTagName("article")[0].style.cursor = ""; 
             this.editor.model.change( writer => {
                 this.editor.model.insertContent(
                     this.createVideo(writer, data.default));

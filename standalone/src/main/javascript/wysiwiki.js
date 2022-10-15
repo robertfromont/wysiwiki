@@ -28,6 +28,7 @@ import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformatio
 import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import Video from './video/video';
 import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
+import InsertFile from './insertfile/insertfile';
 
 InlineEditor.builtinPlugins = [
     Essentials,
@@ -58,6 +59,7 @@ InlineEditor.builtinPlugins = [
     TableToolbar,
     TextTransformation,
     Video,
+    InsertFile,
     Alignment
 ];
 // Editor configuration.
@@ -81,6 +83,7 @@ InlineEditor.defaultConfig = {
 	    '|',
 	    'uploadImage',
             'uploadVideo',
+            'insertFile',
 	    'blockQuote',
 	    'insertTable',
 	    'mediaEmbed',
