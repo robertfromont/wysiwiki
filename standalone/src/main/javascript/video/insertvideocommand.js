@@ -31,14 +31,33 @@ export default class InsertVideoCommand extends Command {
 	    return;
 	}
 
-        document.getElementsByTagName("article")[0].style.cursor = "wait"; 
-        loader.upload().then( data => {
-            document.getElementsByTagName("article")[0].style.cursor = ""; 
-            this.editor.model.change( writer => {
-                this.editor.model.insertContent(
-                    this.createVideo(writer, data.default));
-            });
+        const progress = document.createElement("progress");
+        progress.style.width = "100%";
+        progress.max = 100;
+        progress.value = 0;
+        progress.title = `Uploading ${file.name}`;
+        const body = document.getElementsByTagName("body")[0];
+        body.appendChild(progress);
+        loader.on("change:uploadedPercent", (eventInfo, name, value, oldValue)=> {
+            console.log(`uploadedPercent ${value}`);
+            progress.value = value;
         });
+        loader.upload()
+            .then( data => {
+                document.getElementsByTagName("article")[0].style.cursor = ""; 
+                this.editor.model.change( writer => {
+                    body.removeChild(progress);
+                    this.editor.model.insertContent(
+                        this.createVideo(writer, data.default));
+                }).catch( e => {
+                    body.removeChild(progress);
+	            if ( e === 'aborted' ) {
+		        console.log( 'Uploading aborted.' );
+	            } else {
+		        alert(`Uploading error: ${e}`);
+	            }
+	        });
+            });
     }
 
     refresh() {

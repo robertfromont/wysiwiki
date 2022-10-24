@@ -3,29 +3,6 @@ import Plugin from "@ckeditor/ckeditor5-core/src/plugin";
 import ButtonView from "@ckeditor/ckeditor5-ui/src/button/buttonview";
 import icon from "@ckeditor/ckeditor5-ckfinder/theme/icons/browse-files.svg";
 
-const progress = `
-<div class="modal fade" id="progress-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Uploading file, please wait...</h4>
-      </div>
-      <div class="modal-body">
-        <div class="progress" style="width: 100%; max-width: 100%">
-          <div
-            class="progress-bar progress-bar-success progress-bar-striped active"
-            role="progressbar"
-            aria-valuenow="0"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            style="width: 0%"
-          ></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>`;
-
 export default class InsertFile extends Plugin {
   init() {
     const editor = this.editor;
@@ -88,14 +65,32 @@ export default class InsertFile extends Plugin {
 	  if ( !loader ) {
 	      return;
 	  }
-          document.getElementsByTagName("article")[0].style.cursor = "wait"; 
-          loader.upload().then( data => {
-              document.getElementsByTagName("article")[0].style.cursor = ""; 
-              this.editor.model.change( writer => {
-                  const insertPosition = editor.model.document.selection.getFirstPosition();
-                  writer.insertText( file.name, { linkHref: data.default }, insertPosition );
-              });
+          const progress = document.createElement("progress");
+          progress.style.width = "100%";
+          progress.max = 100;
+          progress.value = 0;
+          progress.title = `Uploading ${file.name}`;
+          const body = document.getElementsByTagName("body")[0];
+          body.appendChild(progress);
+          loader.on("change:uploadedPercent", (eventInfo, name, value, oldValue)=> {
+              console.log(`uploadedPercent ${value}`);
+              progress.value = value;
           });
+          loader.upload()
+              .then( data => {
+                  body.removeChild(progress);
+                  this.editor.model.change( writer => {
+                      const insertPosition = editor.model.document.selection.getFirstPosition();
+                      writer.insertText( file.name, { linkHref: data.default }, insertPosition );
+                  });
+              }).catch( e => {
+                  body.removeChild(progress);
+	          if ( e === 'aborted' ) {
+		      console.log( 'Uploading aborted.' );
+	          } else {
+		      alert(`Uploading error: ${e}`);
+	          }
+	      });
       }
     }
 }
